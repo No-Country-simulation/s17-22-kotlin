@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.nocountry.listmate" />
+                  <option name="mobileSdkAppId" value="1:708333641486:android:9274b973cf9513a641415f" />
+                  <option name="projectId" value="listmate-e3e1b" />
+                  <option name="projectNumber" value="708333641486" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -2,31 +2,26 @@ package com.nocountry.listmate.ui.screens.createproject
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -34,14 +29,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nocountry.listmate.R
+import com.nocountry.listmate.data.tasks
+import com.nocountry.listmate.ui.components.ButtonComponent
 import com.nocountry.listmate.ui.components.InputTextFieldComponent
+import com.nocountry.listmate.ui.components.TaskItem
 import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun CreateProjectScreen() {
 
-    var projectTitle by rememberSaveable { mutableStateOf("")}
+    var projectTitle by rememberSaveable { mutableStateOf("") }
+    val tasks = rememberSaveable {
+        tasks
+    }
 
     Scaffold(
         topBar = {
@@ -64,7 +65,7 @@ fun CreateProjectScreen() {
         ) {
             InputTextFieldComponent(
                 value = projectTitle,
-                onValueChange = {projectTitle = it},
+                onValueChange = { projectTitle = it },
                 label = R.string.project_name_input_label,
                 leadingIcon = null,
                 trailingIcon = { },
@@ -78,45 +79,37 @@ fun CreateProjectScreen() {
                 trailingIcon = { /*TODO*/ },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
             )
-            Button(
+            ButtonComponent(
+                text = R.string.addtask_button_label,
                 onClick = { /*TODO*/ },
+                backgroundColor = MaterialTheme.colorScheme.inversePrimary,
+                icon = Icons.Default.Add,
+                textColor = MaterialTheme.colorScheme.surfaceTint,
+                textStyle = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inversePrimary),
-                shape = RoundedCornerShape(12.dp)
+            )
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.padding(10.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "icon",
-                        tint = MaterialTheme.colorScheme.surfaceTint
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Agregar tarea",
-                        color = MaterialTheme.colorScheme.surfaceTint,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-
+                items(tasks) { task ->
+                    TaskItem(task = task)
                 }
-
             }
             Spacer(modifier = Modifier.weight(1f))
-            Button(
+            ButtonComponent(
+                text = R.string.create_project_button_label,
                 onClick = { /*TODO*/ },
+                backgroundColor = Color(0xFFFFE086),
+                icon = null,
+                textColor = MaterialTheme.colorScheme.surfaceTint,
+                textStyle = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE086)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = "Crear proyecto", color = MaterialTheme.colorScheme.surfaceTint,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-
-            }
+            )
         }
     }
 }
