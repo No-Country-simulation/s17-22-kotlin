@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">ListMate</string>
+
+    <!-- Bottom Navigation Bar -->
+    <string name="profile_bottom_nav_bar">Profile</string>
+    <string name="my_tasks_bottom_nav_bar">My Tasks</string>
+    <string name="home_bottom_nav_bar">Home</string>
+
 </resources>
