@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ListMate</string>
+    <string name="create_project">Crear Proyecto</string>
+    <string name="project_name_input_label">Nombre del proyecto</string>
+    <string name="find_participants_label">Encontrar participantes</string>
+
 </resources>
