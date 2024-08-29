@@ -25,21 +25,24 @@ import com.nocountry.listmate.R
 fun InputTextFieldComponent(
     value: String,
     onValueChange: (String) -> Unit,
-    label: Int,
+    label: Int? = null,
     leadingIcon: ImageVector?,
     trailingIcon: @Composable () -> Unit,
     keyboardOptions: KeyboardOptions,
     supportingText: @Composable (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
         label = {
-            Text(
-                text = stringResource(id = label),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline
-            )
+            label?.let {
+                Text(
+                    text = stringResource(id = it),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
         },
         leadingIcon = if (leadingIcon != null) {
             {
@@ -53,12 +56,13 @@ fun InputTextFieldComponent(
         trailingIcon = {trailingIcon()},
         keyboardOptions = keyboardOptions,
         supportingText = supportingText,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),
+
 
     )
 }

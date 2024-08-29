@@ -21,6 +21,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nocountry.listmate.R
+import com.nocountry.listmate.ui.theme.ListMateTheme
+
 
 @Composable
 fun ButtonComponent(
@@ -59,7 +61,7 @@ fun ButtonComponent(
 @Preview(showBackground = true)
 @Composable
 fun ButtonComponentPreview(){
-    MaterialTheme{
+    ListMateTheme{
         ButtonComponent(
             text = R.string.app_name,
             onClick = { /*TODO*/ },
