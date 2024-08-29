@@ -8,4 +8,10 @@
     <string name="addtask_button_label">Add task</string>
     <string name="create_project_button_label">Create project</string>
 
+
+    <!-- Bottom Navigation Bar -->
+    <string name="profile_bottom_nav_bar">Profile</string>
+    <string name="my_tasks_bottom_nav_bar">My Tasks</string>
+    <string name="home_bottom_nav_bar">Home</string>
+
 </resources>
