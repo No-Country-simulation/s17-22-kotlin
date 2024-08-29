@@ -21,22 +21,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.ui.components.InputTextFieldComponent
 import com.nocountry.listmate.ui.components.TopBarComponent
 import com.google.accompanist.flowlayout.FlowRow
-
 import com.nocountry.listmate.ui.components.ButtonComponent
 import com.nocountry.listmate.ui.components.ParticipantSpotComponent
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 
 @Composable
-fun CreateTaskScreen() {
+fun CreateTaskScreen(navHostController: NavHostController) {
     var taskTitle by rememberSaveable { mutableStateOf("") }
     var taskDescription by rememberSaveable { mutableStateOf("") }
 
@@ -129,6 +130,6 @@ fun CreateTaskScreen() {
 @Composable
 fun CreateTaskScreenPreview() {
     ListMateTheme {
-        CreateTaskScreen()
+        CreateTaskScreen(navHostController = NavHostController(LocalContext.current))
     }
 }

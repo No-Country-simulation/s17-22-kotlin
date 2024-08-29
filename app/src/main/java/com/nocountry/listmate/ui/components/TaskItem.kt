@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 fun TaskItem(
     task: Task
 ) {
-    Card(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+    Card(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth().padding(10.dp, 0.dp)) {
         Row(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.onPrimaryContainer)
