@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">ListMate</string>
+    <string name="create_project">Create a project</string>
+    <string name="create_task">Create task</string>
+    <string name="project_name_input_label">Project name</string>
+    <string name="task_name_input_label">Task name</string>
+    <string name="find_participants_label">Find participants</string>
+    <string name="addtask_button_label">Add task</string>
+    <string name="create_project_button_label">Create project</string>
+
 </resources>
