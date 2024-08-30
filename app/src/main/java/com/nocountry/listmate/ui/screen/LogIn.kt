@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -33,7 +36,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nocountry.listmate.componentes.TopBar
+import com.nocountry.listmate.R
 import androidx.compose.material3.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
@@ -45,6 +57,11 @@ fun LogInPreview(){
 @Composable
 
 fun LogIn(){
+    var email by remember { mutableStateOf("maria@mail.com")}
+    var password by remember { mutableStateOf("8056161") }
+    var passwordVisible by rememberSaveable { mutableStateOf(true) }
+    //var displayAlert by remember { mutableStateOf(false) }
+
     Column(
 
         modifier = Modifier
@@ -61,7 +78,9 @@ fun LogIn(){
         )
         Spacer(modifier = Modifier.height(20.dp))
        Column(
-           modifier = Modifier.fillMaxHeight(1f).padding(20.dp),
+           modifier = Modifier
+               .fillMaxHeight(1f)
+               .padding(20.dp),
            verticalArrangement = Arrangement.Center,
 
 
@@ -74,14 +93,12 @@ fun LogIn(){
 
                 modifier = Modifier
                     .fillMaxWidth(),
-                value = "",
-                onValueChange ={
-//                if (it.length <= 20){
-//                    movimientoViewModel.setNombre(it)
-//                }
+                value = email,
+                onValueChange ={email = it
                 },
                 shape = RoundedCornerShape(15.dp),
                 label =  { Text(text = "Email" ) },
+
 
                 maxLines = 1,
                 singleLine = true
@@ -97,14 +114,38 @@ fun LogIn(){
 
                 modifier = Modifier
                     .fillMaxWidth(),
-                value = "",
-                onValueChange ={},
+                value = password,
+                onValueChange ={password = it},
                 shape = RoundedCornerShape(15.dp),
                 label =  { Text(text = "Password" ) },
-
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password
+                ),
                 maxLines = 1,
-                singleLine = true
+                singleLine = true,
+                visualTransformation =
+                if (passwordVisible)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
+                trailingIcon = {
+                    if (password.isNotBlank()) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            val icon = if(passwordVisible) R.drawable.eye_slash else R.drawable.eye
+
+                            Icon(
+                                painter = painterResource(id = icon),
+                                modifier = Modifier.width(15.dp),
+                                contentDescription = ""
+                            )
+                        }
+                    }
+                }
             )
+
+
+
+
            Spacer(modifier = Modifier.height(25.dp))
 
             HyperlinkText(text = "¿Forgot password?", modifier = Modifier.align(alignment = Alignment.Start)) {  }
@@ -121,6 +162,9 @@ fun LogIn(){
                 shape = RoundedCornerShape(10.dp)
                 ,
                 onClick = {
+                    if (email.isNotBlank() && password.isNotBlank()){
+
+                    }
 
                 }
             ) {
