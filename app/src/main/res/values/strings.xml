@@ -1,5 +1,14 @@
 <resources>
     <string name="app_name">ListMate</string>
+
+    <!-- Bottom Navigation Bar -->
+    <string name="profile_bottom_nav_bar">Profile</string>
+    <string name="my_tasks_bottom_nav_bar">My Tasks</string>
+    <string name="home_bottom_nav_bar">Home</string>
+
+    <!-- FAB BUTTON -->
+    <string name="fab_button">Create</string>
+
     <string name="create_project">Create a project</string>
     <string name="create_task">Create task</string>
     <string name="project_name_input_label">Project name</string>

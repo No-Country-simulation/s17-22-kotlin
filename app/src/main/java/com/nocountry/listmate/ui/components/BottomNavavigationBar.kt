@@ -1,8 +1,10 @@
 package com.nocountry.listmate.ui.components
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,14 +35,13 @@ fun BottomNavigationBar(navHostController: NavHostController) {
         ImageVector.vectorResource(id = R.drawable.profile_icon),
     )
 
-    val selectedIndex = items.indexOf(currentDestination)
-
-    NavigationBar {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.secondaryContainer) {
         items.forEachIndexed { index, route ->
+            val isSelected = currentDestination == route
             NavigationBarItem(
-                selected = selectedIndex == index,
+                selected = isSelected,
                 onClick = {
-                    if (currentDestination != route) {
+                    if (!isSelected) {
                         navHostController.navigate(route) {
                             popUpTo(navHostController.graph.findStartDestination().id) {
                                 saveState = true
@@ -50,7 +51,17 @@ fun BottomNavigationBar(navHostController: NavHostController) {
                         }
                     }
                 },
-                icon = { Icon(imageVector = icons[index], contentDescription = null) },
+                icon = {
+                    Icon(
+                        imageVector = icons[index],
+                        contentDescription = null,
+                        tint = if (isSelected) {
+                            MaterialTheme.colorScheme.onTertiary
+                        } else {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+                    )
+                },
                 label = {
                     Text(
                         stringResource(
@@ -59,9 +70,13 @@ fun BottomNavigationBar(navHostController: NavHostController) {
                                 1 -> R.string.my_tasks_bottom_nav_bar
                                 else -> R.string.profile_bottom_nav_bar
                             }
-                        )
+                        ), color = MaterialTheme.colorScheme.onPrimaryContainer
+
                     )
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
         }
     }
