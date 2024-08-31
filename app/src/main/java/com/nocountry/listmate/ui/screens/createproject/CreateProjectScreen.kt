@@ -56,7 +56,7 @@ fun CreateProjectScreen(navHostController: NavHostController) {
     Scaffold(
         topBar = {
             TopBarComponent(title = R.string.create_project, navigationIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { navHostController.popBackStack() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.arrow_back),
                         contentDescription = "Arrow back"
