@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,9 +16,11 @@ import com.nocountry.listmate.ui.screens.createtask.CreateTaskScreen
 import com.nocountry.listmate.ui.screens.home.HomeScreen
 import com.nocountry.listmate.ui.screens.my_tasks.MyTasksScreen
 import com.nocountry.listmate.ui.screens.profile.ProfileScreen
+import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 
 @Composable
 fun ListMateApp(navHostController: NavHostController = rememberNavController()) {
+    val createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel = viewModel()
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -36,10 +39,14 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 ProfileScreen(navHostController = navHostController)
             }
             composable(Destinations.CREATE_PROJECT) {
-                CreateProjectScreen(navHostController = navHostController)
+                CreateProjectScreen(navHostController = navHostController,
+                    createProjectTaskSharedViewModel
+                )
             }
             composable(Destinations.CREATE_TASK){
-                CreateTaskScreen(navHostController = navHostController)
+                CreateTaskScreen(navHostController = navHostController,
+                    createProjectTaskSharedViewModel
+                )
             }
         }
     }

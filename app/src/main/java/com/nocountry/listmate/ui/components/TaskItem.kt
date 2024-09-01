@@ -26,9 +26,11 @@ import androidx.compose.ui.unit.dp
 fun TaskItem(
     task: Task
 ) {
-    Card(onClick = { /*TODO*/ }, modifier = Modifier
-        .fillMaxWidth()
-        .padding(10.dp, 0.dp)) {
+    Card(
+        onClick = { /*TODO*/ }, modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp, 0.dp)
+    ) {
         Row(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.onPrimaryContainer)
@@ -36,14 +38,20 @@ fun TaskItem(
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column (modifier = Modifier.weight(1f),) {
+            Text(
+                text = "${task.id.toInt() + 1}.",
+                color = Color(0xFFCFE4FF),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(end = 10.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = task.taskName,
                     color = Color(0xFFCFE4FF),
                     style = MaterialTheme.typography.labelMedium
                 )
                 Text(
-                    text = "Assigned to: ",
+                    text = "Assigned to: ${task.assignedTo}",
                     color = Color(0xFFCFE4FF),
                     style = MaterialTheme.typography.labelSmall
                 )

@@ -9,8 +9,8 @@
     <!-- FAB BUTTON -->
     <string name="fab_button">Create</string>
 
-    <string name="create_project">Create project</string>
-    <string name="create_task">Create task</string>
+    <string name="create_project">Create Project</string>
+    <string name="create_task">Create Task</string>
     <string name="project_name_input_label">Project name</string>
     <string name="task_name_input_label">Task name</string>
     <string name="find_participants_label">Find participants</string>

@@ -1,6 +1,8 @@
 package com.nocountry.listmate.ui.screens.createproject
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,11 +18,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -31,20 +33,22 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.accompanist.flowlayout.FlowRow
 import com.nocountry.listmate.R
-import com.nocountry.listmate.data.tasks
 import com.nocountry.listmate.ui.components.ButtonComponent
 import com.nocountry.listmate.ui.components.InputTextFieldComponent
 import com.nocountry.listmate.ui.components.ParticipantSpotComponent
 import com.nocountry.listmate.ui.components.TaskItem
 import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.navigation.Destinations
+import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
-fun CreateProjectScreen(navHostController: NavHostController) {
-
-    var projectTitle by rememberSaveable { mutableStateOf("") }
-    val tasks = rememberSaveable { tasks }
+fun CreateProjectScreen(
+    navHostController: NavHostController,
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel
+) {
+    val projectTitle by createProjectTaskSharedViewModel.projectTitle.observeAsState("")
+    val tasks by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
     val dummyParticipants = listOf(
         "Nikoll Quintero Chavez",
         "Pepito Perez",
@@ -52,6 +56,7 @@ fun CreateProjectScreen(navHostController: NavHostController) {
         "Moises",
         "Yonisa"
     )
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -75,7 +80,7 @@ fun CreateProjectScreen(navHostController: NavHostController) {
             item {
                 InputTextFieldComponent(
                     value = projectTitle,
-                    onValueChange = { projectTitle = it },
+                    onValueChange = { createProjectTaskSharedViewModel.setProjectTitle(it) },
                     label = R.string.project_name_input_label,
                     leadingIcon = null,
                     trailingIcon = { },
@@ -108,7 +113,21 @@ fun CreateProjectScreen(navHostController: NavHostController) {
             item {
                 ButtonComponent(
                     text = R.string.addtask_button_label,
-                    onClick = { navHostController.navigate(Destinations.CREATE_TASK) },
+                    onClick = {
+                        if (projectTitle.isNotBlank()) {
+                            onAddTaskClick(
+                                createProjectTaskSharedViewModel,
+                                dummyParticipants,
+                                navHostController
+                            )
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please insert project name",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
                     backgroundColor = MaterialTheme.colorScheme.inversePrimary,
                     icon = Icons.Default.Add,
                     textColor = MaterialTheme.colorScheme.surfaceTint,
@@ -118,8 +137,25 @@ fun CreateProjectScreen(navHostController: NavHostController) {
                         .height(48.dp),
                 )
             }
-            items(tasks) { task ->
-                TaskItem(task = task)
+            if (tasks.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(vertical = 20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No tasks added",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray,
+                        )
+                    }
+                }
+            } else {
+                items(tasks) { task ->
+                    TaskItem(task)
+                }
             }
             item {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -139,10 +175,23 @@ fun CreateProjectScreen(navHostController: NavHostController) {
     }
 }
 
+private fun onAddTaskClick(
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
+    dummyParticipants: List<String>,
+    navHostController: NavHostController
+) {
+    createProjectTaskSharedViewModel.setProjectParticipants(dummyParticipants)
+    navHostController.navigate(Destinations.CREATE_TASK)
+}
+
 @Preview(showBackground = true)
 @Composable
 fun CreateProjectScreenPreview() {
     ListMateTheme {
-        CreateProjectScreen(navHostController = NavHostController(LocalContext.current))
+        val mockViewModel = CreateProjectTaskSharedViewModel()
+        CreateProjectScreen(
+            navHostController = NavHostController(LocalContext.current),
+            createProjectTaskSharedViewModel = mockViewModel
+        )
     }
 }
