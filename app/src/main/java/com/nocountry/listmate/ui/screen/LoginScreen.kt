@@ -55,7 +55,7 @@ fun LogInPreview(){
 @Composable
 
 fun LoginScreen(navHostController: NavHostController){
-    var email by remember { mutableStateOf("maria@mail.com")}
+    var email by remember { mutableStateOf("sara@mail.com")}
     var password by remember { mutableStateOf("8056161") }
     var passwordVisible by rememberSaveable { mutableStateOf(true) }
     //var displayAlert by remember { mutableStateOf(false) }

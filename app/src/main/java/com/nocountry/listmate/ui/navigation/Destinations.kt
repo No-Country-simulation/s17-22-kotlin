@@ -7,4 +7,5 @@ object Destinations {
     const val CREATE_PROJECT = "CreateProject"
     const val CREATE_TASK = "CreateTask"
     const val LOGIN = "Login"
+    const val SIGNUP = "Signup"
 }
