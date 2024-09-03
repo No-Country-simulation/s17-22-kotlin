@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.nocountry.listmate.R
 import com.nocountry.listmate.componentes.TopBar
 import com.nocountry.listmate.ui.navigation.Destinations
@@ -55,10 +58,10 @@ fun LogInPreview(){
 @Composable
 
 fun LoginScreen(navHostController: NavHostController){
-    var email by remember { mutableStateOf("sara@mail.com")}
-    var password by remember { mutableStateOf("8056161") }
+    var email by remember { mutableStateOf("")}
+    var password by remember { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(true) }
-    //var displayAlert by remember { mutableStateOf(false) }
+    var displayAlert by remember { mutableStateOf(false) }
 
     Column(
 
@@ -161,7 +164,19 @@ fun LoginScreen(navHostController: NavHostController){
                 ,
                 onClick = {
                     if (email.isNotBlank() && password.isNotBlank()){
-                        navHostController.navigate(Destinations.HOME)
+
+                        if(email.isNotBlank() && password.isNotBlank()){
+                            FirebaseAuth.getInstance()
+                                .signInWithEmailAndPassword(email , password)
+                                .addOnCompleteListener{
+                                    if(it.isSuccessful){
+                                        navHostController.navigate(Destinations.HOME)
+                                    }
+                                    else{
+                                        displayAlert = true
+                                    }
+                                }
+                        }
                     }
 
                 }
@@ -179,12 +194,39 @@ fun LoginScreen(navHostController: NavHostController){
                 Spacer(modifier = Modifier.width(10.dp))
                 HyperlinkText(
                     text = "Sign Up",
-                    color = Color.Black) {  }
+                    color = Color.Black) {
+                    navHostController.navigate(Destinations.SIGNUP)
+                }
 
             }
        }
 
 
+    }
+
+
+    if (displayAlert){
+        AlertDialog(
+            title = {
+                Text(text = "No se pudo registrar")
+            },
+            text = {
+                Text(text = "No se pudo registrar el usuario. Intente en unos minutos.")
+            },
+            onDismissRequest = {
+            },
+            confirmButton = {
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        displayAlert = false
+                    }
+                ) {
+                    Text("Entendido")
+                }
+            }
+        )
     }
 }
 

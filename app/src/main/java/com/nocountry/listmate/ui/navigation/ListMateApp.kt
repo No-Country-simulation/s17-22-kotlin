@@ -23,7 +23,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        NavHost(navController = navHostController, startDestination = Destinations.SIGNUP) {
+        NavHost(navController = navHostController, startDestination = Destinations.LOGIN) {
             composable(Destinations.SIGNUP) {
                 SignUpScreen(navHostController = navHostController)
             }
