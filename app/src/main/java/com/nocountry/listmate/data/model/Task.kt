@@ -4,6 +4,7 @@ data class Task(
     val id: String = "",
     val title: String = "",
     val description: String = "",
+    val status: String = "",
     val projectId: String = "",
-    val userId: String = ""
+    val assignedUsers: List<String> = emptyList()
 )
