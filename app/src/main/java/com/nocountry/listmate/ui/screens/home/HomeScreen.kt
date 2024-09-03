@@ -181,16 +181,30 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     ),
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
+
+                val tasksText = if (project.tasks.size == 1) {
+                    "${project.tasks} task"
+                } else {
+                    "${project.tasks} tasks"
+                }
+
                 Text(
-                    text = project.tasks.toString(), modifier = Modifier.width(210.dp),
+                    text = tasksText, modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 30.sp,
                         lineHeight = 44.sp
                     ),
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
+
+                val usersText = if (project.users.size == 1) {
+                    "${project.users} user"
+                } else {
+                    "${project.users} users"
+                }
+
                 Text(
-                    text = project.users.toString(), modifier = Modifier.width(210.dp),
+                    text = usersText, modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 20.sp,
                     ),
