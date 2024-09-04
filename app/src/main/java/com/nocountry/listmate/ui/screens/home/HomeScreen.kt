@@ -25,8 +25,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,19 +44,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
-import com.nocountry.listmate.data.model.User
+import com.nocountry.listmate.data.model.Usuario
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun HomeScreen(
+    userId: String,
     homeScreenViewModel: HomeScreenViewModel = viewModel(factory = HomeScreenViewModel.provideFactory()),
     navHostController: NavHostController
 ) {
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+
+    val user = remember {
+        mutableStateOf<Usuario?>(null)
+    }
+    LaunchedEffect(userId) {
+        user.value = homeScreenViewModel.getUserById(userId)
+    }
 
     Scaffold(
         bottomBar = {
@@ -99,19 +110,19 @@ fun HomeScreen(
                     }
 
                     uiState.projects.isNotEmpty() -> {
-                        // TODO: Implement authenticated user in the user attribute
-                        ProjectsOverview(user = User(name = "Nikoll"))
-                        ProjectsList(projects = uiState.projects)
+                        user.value?.let { user ->
+                            ProjectsOverview(user = user)
+                            ProjectsList(projects = uiState.projects)
+                        }
                     }
                 }
-
             }
         }
     }
 }
 
 @Composable
-fun ProjectsOverview(user: User) {
+fun ProjectsOverview(user: Usuario) {
     Column(
         modifier = Modifier
             .width(360.dp)
@@ -121,7 +132,7 @@ fun ProjectsOverview(user: User) {
         horizontalAlignment = Alignment.Start,
     ) {
         Text(
-            text = "Hello, ${user.name}",
+            text = "Hello, ${user.nombre}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -230,6 +241,6 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
 @Composable
 fun HomeScreenPreview() {
     ListMateTheme {
-        HomeScreen(navHostController = NavHostController(LocalContext.current))
+        HomeScreen(userId = "", navHostController = NavHostController(LocalContext.current))
     }
 }
