@@ -14,6 +14,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.nocountry.listmate.data.repository.ProjectRepositoryImpl
 import com.nocountry.listmate.domain.ProjectRepository
 import com.nocountry.listmate.ui.screen.LoginScreen
+import com.nocountry.listmate.ui.screen.SignUpScreen
 import com.nocountry.listmate.ui.screens.createproject.CreateProjectScreen
 import com.nocountry.listmate.ui.screens.createtask.CreateTaskScreen
 import com.nocountry.listmate.ui.screens.home.HomeScreen
@@ -34,6 +35,9 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
         color = MaterialTheme.colorScheme.background
     ) {
         NavHost(navController = navHostController, startDestination = Destinations.LOGIN) {
+            composable(Destinations.SIGNUP) {
+                SignUpScreen(navHostController = navHostController)
+            }
             composable(Destinations.LOGIN) {
                 LoginScreen(navHostController = navHostController)
             }
