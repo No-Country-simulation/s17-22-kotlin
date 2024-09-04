@@ -14,9 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.tooling.preview.Preview
-import com.nocountry.listmate.data.Task
-import com.nocountry.listmate.data.tasks
+import com.nocountry.listmate.data.model.Task
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -26,6 +24,7 @@ import androidx.compose.ui.unit.dp
 fun TaskItem(
     task: Task
 ) {
+    var sequence = 1
     Card(
         onClick = { /*TODO*/ }, modifier = Modifier
             .fillMaxWidth()
@@ -39,7 +38,7 @@ fun TaskItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${task.id.toInt() + 1}.",
+                text = "${sequence++}.",
                 color = Color(0xFFCFE4FF),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(end = 10.dp)
@@ -65,10 +64,11 @@ fun TaskItem(
     }
 }
 
+/*
 @Preview(showBackground = true)
 @Composable
 fun TaskItemPreview() {
     MaterialTheme {
-        TaskItem(task = tasks[0])
+        TaskItem(tasks[0])
     }
-}
+}*/

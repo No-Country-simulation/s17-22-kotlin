@@ -1,8 +1,10 @@
 package com.nocountry.listmate.ui.screens.createproject
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,12 +30,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.google.accompanist.flowlayout.FlowRow
 import com.nocountry.listmate.R
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.ButtonComponent
 import com.nocountry.listmate.ui.components.InputTextFieldComponent
 import com.nocountry.listmate.ui.components.ParticipantSpotComponent
@@ -45,23 +51,30 @@ import com.nocountry.listmate.ui.theme.ListMateTheme
 @Composable
 fun CreateProjectScreen(
     navHostController: NavHostController,
-    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel
+    sharedViewModel: CreateProjectTaskSharedViewModel
 ) {
-    val projectTitle by createProjectTaskSharedViewModel.projectTitle.observeAsState("")
-    val tasks by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
+    val projectTitle by sharedViewModel.projectTitle.observeAsState("")
+    val tasks by sharedViewModel.tasks.observeAsState(mutableListOf())
+    val loading by sharedViewModel.loading.observeAsState(false)
     val dummyParticipants = listOf(
-        "Nikoll Quintero Chavez",
-        "Pepito Perez",
-        "Rosa Rodriguez",
-        "Moises",
-        "Yonisa"
+        User(
+            id = "user1",
+            name = "Alice Johnson",
+            email = "alice.johnson@example.com"
+        ),
+        User(
+            id = "user2",
+            name = "Bob Smith",
+            email = "bob.smith@example.com"
+        )
     )
+
     val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopBarComponent(title = R.string.create_project, navigationIcon = {
-                IconButton(onClick = { navHostController.popBackStack() }) {
+                IconButton(onClick = { navHostController.navigate(Destinations.HOME) }) {
                     Icon(
                         painter = painterResource(id = R.drawable.arrow_back),
                         contentDescription = "Arrow back"
@@ -80,11 +93,14 @@ fun CreateProjectScreen(
             item {
                 InputTextFieldComponent(
                     value = projectTitle,
-                    onValueChange = { createProjectTaskSharedViewModel.setProjectTitle(it) },
+                    onValueChange = { sharedViewModel.setProjectTitle(it) },
                     label = R.string.project_name_input_label,
                     leadingIcon = null,
                     trailingIcon = { },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -95,7 +111,10 @@ fun CreateProjectScreen(
                     label = R.string.find_participants_label,
                     leadingIcon = Icons.Default.Search,
                     trailingIcon = { /*TODO*/ },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -106,7 +125,7 @@ fun CreateProjectScreen(
                     crossAxisSpacing = 8.dp
                 ) {
                     dummyParticipants.forEach { participant ->
-                        ParticipantSpotComponent(name = participant)
+                        ParticipantSpotComponent(name = participant.name)
                     }
                 }
             }
@@ -116,7 +135,7 @@ fun CreateProjectScreen(
                     onClick = {
                         if (projectTitle.isNotBlank()) {
                             onAddTaskClick(
-                                createProjectTaskSharedViewModel,
+                                sharedViewModel,
                                 dummyParticipants,
                                 navHostController
                             )
@@ -161,7 +180,23 @@ fun CreateProjectScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 ButtonComponent(
                     text = R.string.create_project_button_label,
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        if (projectTitle.isNotBlank()) {
+                            onCreateProjectClick(
+                                navHostController,
+                                sharedViewModel,
+                                "123Test"
+                            )
+
+
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please insert project name",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
                     backgroundColor = Color(0xFFFFE086),
                     icon = null,
                     textColor = MaterialTheme.colorScheme.surfaceTint,
@@ -173,25 +208,55 @@ fun CreateProjectScreen(
             }
         }
     }
+    if (loading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(modifier = Modifier.padding(10.dp))
+                Text(
+                    text = "Creating project", style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                )
+            }
+        }
+    }
 }
 
 private fun onAddTaskClick(
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
-    dummyParticipants: List<String>,
+    dummyParticipants: List<User>,
     navHostController: NavHostController
 ) {
     createProjectTaskSharedViewModel.setProjectParticipants(dummyParticipants)
     navHostController.navigate(Destinations.CREATE_TASK)
 }
 
-@Preview(showBackground = true)
-@Composable
-fun CreateProjectScreenPreview() {
-    ListMateTheme {
-        val mockViewModel = CreateProjectTaskSharedViewModel()
-        CreateProjectScreen(
-            navHostController = NavHostController(LocalContext.current),
-            createProjectTaskSharedViewModel = mockViewModel
-        )
+private fun onCreateProjectClick(
+    navHostController: NavHostController,
+    sharedViewModel: CreateProjectTaskSharedViewModel,
+    ownerId: String
+) {
+    sharedViewModel.createProjectAndTasks(ownerId) {
+        navHostController.navigate(Destinations.HOME)
     }
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun CreateProjectScreenPreview() {
+//    ListMateTheme {
+//        val mockViewModel = CreateProjectTaskSharedViewModel()
+//        CreateProjectScreen(
+//            navHostController = NavHostController(LocalContext.current),
+//            createProjectTaskSharedViewModel = mockViewModel
+//        )
+//    }
+//}

@@ -38,8 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.nocountry.listmate.R
-import com.nocountry.listmate.data.Project
-import com.nocountry.listmate.data.dummyProjects
+import com.nocountry.listmate.data.model.Project
+import com.nocountry.listmate.data.model.dummyProjects
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.theme.ListMateTheme
@@ -81,9 +81,9 @@ fun HomeScreen(navHostController: NavHostController) {
         ) {
             ProjectsOverview(userName = dummyName, projectsCount = dummyProjectsCount)
             Spacer(modifier = Modifier.padding(vertical = 10.dp))
-            if (projects.isNotEmpty()) {
-                ProjectsList(projects = projects)
-            }
+//            if (projects.isNotEmpty()) {
+//                ProjectsList(projects = projects)
+//            }
 
         }
 
@@ -154,7 +154,7 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = project.projectName,
+                    text = project.name,
                     modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 40.sp,
@@ -163,7 +163,7 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Text(
-                    text = project.tasksCount, modifier = Modifier.width(210.dp),
+                    text = project.tasks?.size.toString(), modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 30.sp,
                         lineHeight = 44.sp
@@ -171,7 +171,7 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Text(
-                    text = project.participantsCount, modifier = Modifier.width(210.dp),
+                    text = project.participants.size.toString(), modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 20.sp,
                     ),

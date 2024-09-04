@@ -1,6 +1,7 @@
 package com.nocountry.listmate.ui.screens.createtask
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,12 +34,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.nocountry.listmate.R
-import com.nocountry.listmate.data.Task
+import com.nocountry.listmate.data.model.Task
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.InputTextFieldComponent
 import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.components.ButtonComponent
@@ -50,16 +54,17 @@ import com.nocountry.listmate.ui.theme.ListMateTheme
 @Composable
 fun CreateTaskScreen(
     navHostController: NavHostController,
-    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel
+    sharedViewModel: CreateProjectTaskSharedViewModel
 ) {
+
     var taskTitle by rememberSaveable { mutableStateOf("") }
     var taskDescription by rememberSaveable { mutableStateOf("") }
     val selectedParticipant: MutableState<String> = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
-    val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(
+    val projectParticipants by sharedViewModel.projectParticipants.observeAsState(
         emptyList()
     )
-    val task by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
+    val task by sharedViewModel.tasks.observeAsState(mutableListOf())
 
     Scaffold(
         topBar = {
@@ -86,7 +91,10 @@ fun CreateTaskScreen(
                 label = R.string.task_name_input_label,
                 leadingIcon = null,
                 trailingIcon = { },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Sentences
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.padding(0.dp, 2.dp))
@@ -100,7 +108,10 @@ fun CreateTaskScreen(
                 label = null,
                 leadingIcon = null,
                 trailingIcon = { },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Sentences
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
@@ -111,12 +122,13 @@ fun CreateTaskScreen(
                 onClick = {
                     addTaskValidation(
                         taskTitle,
+                        taskDescription,
                         selectedParticipant,
                         navHostController,
                         context,
                         task,
-                        createProjectTaskSharedViewModel
-                        )
+                        sharedViewModel
+                    )
                 },
                 backgroundColor = MaterialTheme.colorScheme.inversePrimary,
                 icon = null,
@@ -132,7 +144,7 @@ fun CreateTaskScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants: List<String>) {
+fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants: List<User>) {
 
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -170,17 +182,17 @@ fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants:
                 onDismissRequest = { isExpanded = false },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                projectParticipants.forEachIndexed { index, text ->
+                projectParticipants.forEachIndexed { _, text ->
                     DropdownMenuItem(
                         modifier = Modifier.fillMaxWidth(),
                         text = {
                             Text(
-                                text = text, style = MaterialTheme.typography.bodyMedium,
+                                text = text.name, style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
                         },
                         onClick = {
-                            selectedParticipant.value = text
+                            selectedParticipant.value = text.name
                             isExpanded = false
                         },
                     )
@@ -192,6 +204,7 @@ fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants:
 
 private fun addTaskValidation(
     taskTitle: String,
+    taskDescription: String,
     selectedParticipant: MutableState<String>,
     navHostController: NavHostController,
     context: Context,
@@ -199,7 +212,7 @@ private fun addTaskValidation(
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
 ) {
     if (taskTitle.isNotBlank() && selectedParticipant.value.isNotBlank()) {
-        val newTask = Task(task.size.toString(), taskTitle, selectedParticipant.value)
+        val newTask = Task("", "", taskTitle, selectedParticipant.value, taskDescription, "To do")
         task.add(newTask)
         createProjectTaskSharedViewModel.setTasks(task)
         navHostController.navigate(Destinations.CREATE_PROJECT)
@@ -213,14 +226,14 @@ private fun addTaskValidation(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun CreateTaskScreenPreview() {
-    ListMateTheme {
-        val mockViewModel = CreateProjectTaskSharedViewModel()
-        CreateTaskScreen(
-            navHostController = NavHostController(LocalContext.current),
-            createProjectTaskSharedViewModel = mockViewModel
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun CreateTaskScreenPreview() {
+//    ListMateTheme {
+//        val mockViewModel = CreateProjectTaskSharedViewModel()
+//        CreateTaskScreen(
+//            navHostController = NavHostController(LocalContext.current),
+//            createProjectTaskSharedViewModel = mockViewModel
+//        )
+//    }
+//}
