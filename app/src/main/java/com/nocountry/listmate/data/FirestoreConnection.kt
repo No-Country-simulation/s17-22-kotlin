@@ -5,6 +5,6 @@ import com.google.firebase.firestore.firestore
 
 class FirestoreConnection {
     companion object{
-        val usuarioDB = Firebase.firestore.collection("usuarios")
+        val usuarioDB = Firebase.firestore.collection("users")
     }
 }
