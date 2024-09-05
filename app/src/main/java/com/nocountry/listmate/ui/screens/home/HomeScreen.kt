@@ -101,7 +101,7 @@ fun HomeScreen(
 
                 uiState.projects.isNotEmpty() -> {
                     // TODO: Implement authenticated user in the user attribute
-                    ProjectsOverview(user = User(name = "Nikoll"))
+                    ProjectsOverview(user = User(name = "Nikoll"), uiState.projects)
                     ProjectsList(projects = uiState.projects)
                 }
             }
@@ -110,7 +110,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun ProjectsOverview(user: User) {
+fun ProjectsOverview(user: User, projects: List<Project>) {
     Column(
         modifier = Modifier
             .width(360.dp)
@@ -126,7 +126,7 @@ fun ProjectsOverview(user: User) {
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "Your\nProjects (${user.projects.size})",
+            text = "Your\nProjects (${projects.size})",
             style = MaterialTheme.typography.titleLarge.copy(
                 lineHeight = 40.sp
             ),
