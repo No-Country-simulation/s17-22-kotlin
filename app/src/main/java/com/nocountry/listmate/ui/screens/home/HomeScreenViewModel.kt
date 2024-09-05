@@ -1,5 +1,6 @@
 package com.nocountry.listmate.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -7,6 +8,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.firebase.firestore.FirebaseFirestore
 import com.nocountry.listmate.data.repository.HomeRepositoryImpl
 import com.nocountry.listmate.domain.HomeRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,13 +27,16 @@ class HomeScreenViewModel(private val homeRepository: HomeRepository) : ViewMode
     private fun getProjects() {
         _uiState.update { it.copy(isLoading = true) }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val projects = homeRepository.getProjects().first()
-                _uiState.update { it.copy(isLoading = false, projects = projects) }
+                _uiState.update {
+                    Log.d("HomeScreenViewModel", "Projects fetched: $projects")
+                    it.copy(isLoading = false, projects = projects) }
 
             } catch (e: Exception) {
                 _uiState.update {
+                    Log.e("HomeScreenViewModel", "Error fetching projects", e)
                     it.copy(
                         isLoading = false,
                         isError = "Error getting projects from database ${e.message}"

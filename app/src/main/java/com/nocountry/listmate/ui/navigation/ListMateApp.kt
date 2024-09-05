@@ -25,7 +25,8 @@ import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskShare
 
 @Composable
 fun ListMateApp(navHostController: NavHostController = rememberNavController()) {
-    val projectRepository: ProjectRepository = ProjectRepositoryImpl(FirebaseFirestore.getInstance())
+    val projectRepository: ProjectRepository =
+        ProjectRepositoryImpl(FirebaseFirestore.getInstance())
     val createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel = viewModel(
         factory = CreateProjectTaskSharedViewModelFactory(projectRepository)
     )
@@ -34,7 +35,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        NavHost(navController = navHostController, startDestination = Destinations.LOGIN) {
+        NavHost(navController = navHostController, startDestination = Destinations.HOME) {
             composable(Destinations.SIGNUP) {
                 SignUpScreen(navHostController = navHostController)
             }
@@ -51,10 +52,16 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 ProfileScreen(navHostController = navHostController)
             }
             composable(Destinations.CREATE_PROJECT) {
-                CreateProjectScreen(navHostController = navHostController, sharedViewModel = createProjectTaskSharedViewModel)
+                CreateProjectScreen(
+                    navHostController = navHostController,
+                    sharedViewModel = createProjectTaskSharedViewModel
+                )
             }
-            composable(Destinations.CREATE_TASK){
-                CreateTaskScreen(navHostController = navHostController, sharedViewModel = createProjectTaskSharedViewModel)
+            composable(Destinations.CREATE_TASK) {
+                CreateTaskScreen(
+                    navHostController = navHostController,
+                    sharedViewModel = createProjectTaskSharedViewModel
+                )
             }
         }
     }

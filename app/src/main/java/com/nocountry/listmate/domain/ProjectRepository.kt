@@ -9,8 +9,8 @@ interface ProjectRepository {
     suspend fun createProject(
         projectName: String,
         ownerId: String,
-        participants: List<User>,
-        tasks: List<Task>?
+        participants: List<String>?,
+        tasks: List<String>?
     ): Flow<Project>
 
     suspend fun createTasks(projectId: String, tasks: List<Task>): Flow<List<Task>>

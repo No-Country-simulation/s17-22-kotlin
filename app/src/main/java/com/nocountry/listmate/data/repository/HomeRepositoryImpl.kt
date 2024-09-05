@@ -19,6 +19,7 @@ class HomeRepositoryImpl(private val firebase: FirebaseFirestore) : HomeReposito
         val tasksToFetch = mutableSetOf<String>()
         val usersToFetch = mutableSetOf<String>()
 
+
         // Getting projects
         firebase.collection("projects")
             .get()
@@ -28,8 +29,8 @@ class HomeRepositoryImpl(private val firebase: FirebaseFirestore) : HomeReposito
                     val project = projectDocument.toObject(Project::class.java)
                     if (project != null) {
 
-                        tasksToFetch.addAll(project.tasks)
-                        usersToFetch.addAll(project.users)
+                        project.tasks?.let { tasksToFetch.addAll(it) }
+                        usersToFetch.addAll(project.participants)
                         projects.add(project)
                     }
                 }
@@ -58,17 +59,17 @@ class HomeRepositoryImpl(private val firebase: FirebaseFirestore) : HomeReposito
 
                 // Update projects with tasks and users
                 val updatedProjects = projects.map { project ->
-                    val projectTasks = project.tasks.mapNotNull { tasksMap[it] }
-                    val projectUsers = project.users.mapNotNull { usersMap[it] }
+                    val projectTasks = project.tasks?.mapNotNull { tasksMap[it] }
+                    val projectUsers = project.participants.mapNotNull { usersMap[it] }
 
                     val updatedProject = project.copy(
-                        tasks = projectTasks.map { it.id },
-                        users = projectUsers.map { it.id }
+                        tasks = projectTasks?.map { it.id },
+                        participants = projectUsers.map { it.id }
                     )
                     updatedProject
                 }
 
-                trySend(updatedProjects)
+                trySend(projects)
             }
             .addOnFailureListener { exception ->
                 Log.d(TAG, "Error getting projects: ", exception)

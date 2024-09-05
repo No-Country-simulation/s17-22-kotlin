@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -53,7 +54,6 @@ fun HomeScreen(
 ) {
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
-    val scrollState = rememberScrollState()
 
     Scaffold(
         bottomBar = {
@@ -79,32 +79,31 @@ fun HomeScreen(
             )
         }
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-                .verticalScroll(scrollState)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                when {
-                    uiState.isLoading -> {
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator()
-                    }
-
-                    uiState.isError.isNotEmpty() -> {
-                        //ErrorScreen
-                    }
-
-                    uiState.projects.isNotEmpty() -> {
-                        // TODO: Implement authenticated user in the user attribute
-                        ProjectsOverview(user = User(name = "Nikoll"))
-                        ProjectsList(projects = uiState.projects)
                     }
                 }
 
+                uiState.isError.isNotEmpty() -> {
+                    // ErrorScreen
+                }
+
+                uiState.projects.isNotEmpty() -> {
+                    // TODO: Implement authenticated user in the user attribute
+                    ProjectsOverview(user = User(name = "Nikoll"))
+                    ProjectsList(projects = uiState.projects)
+                }
             }
         }
     }
@@ -173,7 +172,7 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = project.title,
+                    text = project.name,
                     modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 40.sp,
@@ -182,10 +181,10 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
 
-                val tasksText = if (project.tasks.size == 1) {
-                    "${project.tasks} task"
+                val tasksText = if (project.tasks?.size == 1) {
+                    "${project.tasks.size} task"
                 } else {
-                    "${project.tasks} tasks"
+                    "${project.tasks?.size} tasks"
                 }
 
                 Text(
@@ -197,10 +196,10 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
 
-                val usersText = if (project.users.size == 1) {
-                    "${project.users} user"
+                val usersText = if (project.participants.size == 1) {
+                    "${project.participants.size} user"
                 } else {
-                    "${project.users} users"
+                    "${project.participants.size} users"
                 }
 
                 Text(

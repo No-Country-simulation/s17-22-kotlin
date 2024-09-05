@@ -30,7 +30,6 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
     val projectTitle: LiveData<String> get() = _projectTitle
 
     private val _project = MutableLiveData<Project>()
-    val project: LiveData<Project> get() = _project
 
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> get() = _loading
@@ -50,13 +49,16 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
     fun createProjectAndTasks(ownerId: String, onProjectCreated: () -> Unit) {
         val title = _projectTitle.value
         val participants = _projectParticipants.value
+        val participantsId = participants?.map { it.id }
+
         val tasks = _tasks.value
+        val tasksId = tasks?.map { it.id }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _loading.postValue(true)
                 if (title != null && participants?.isNotEmpty() == true) {
-                    projectRepository.createProject(title, ownerId, participants, tasks)
+                    projectRepository.createProject(title, ownerId, participantsId, tasksId)
                         .collect { createdProject ->
                             _project.postValue(createdProject)
                             if (tasks != null) {

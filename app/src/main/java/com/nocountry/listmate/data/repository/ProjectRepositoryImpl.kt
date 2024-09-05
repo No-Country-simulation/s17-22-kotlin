@@ -14,22 +14,25 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
     override suspend fun createProject(
         projectName: String,
         ownerId: String,
-        participants: List<User>,
-        tasks: List<Task>?
+        participants: List<String>?,
+        tasks: List<String>?,
     ): Flow<Project> = callbackFlow {
         val project = hashMapOf(
-            "title" to projectName,
+            "name" to projectName,
             "ownerId" to ownerId,
-            "users" to participants.map { it.id },
-            "tasks" to tasks?.map { it.id }
+            "participants" to participants,
+            "tasks" to tasks
         )
 
         firebase.collection("projects")
             .add(project)
             .addOnSuccessListener { docRef ->
                 val projectId = docRef.id
-                val createProject = Project(projectId, projectName, ownerId, participants, tasks)
-                trySend(createProject).isSuccess
+                val createProject =
+                    participants?.let { Project(projectId, projectName, "", it, tasks, ownerId ) }
+                if (createProject != null) {
+                    trySend(createProject).isSuccess
+                }
             }
             .addOnFailureListener { close(it) }
         awaitClose()
