@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,12 +25,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -36,19 +38,22 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.nocountry.listmate.R
-import com.nocountry.listmate.data.Project
-import com.nocountry.listmate.data.dummyProjects
+import com.nocountry.listmate.data.model.Project
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
-fun HomeScreen(navHostController: NavHostController) {
-    val projects = dummyProjects
-    val dummyName by rememberSaveable { mutableStateOf("Michael") }
-    val dummyProjectsCount by rememberSaveable { mutableIntStateOf(2) }
+fun HomeScreen(
+    homeScreenViewModel: HomeScreenViewModel = viewModel(factory = HomeScreenViewModel.provideFactory()),
+    navHostController: NavHostController
+) {
+
+    val uiState by homeScreenViewModel.uiState.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -79,20 +84,33 @@ fun HomeScreen(navHostController: NavHostController) {
                 .fillMaxSize()
                 .padding(it)
         ) {
-            ProjectsOverview(userName = dummyName, projectsCount = dummyProjectsCount)
-            Spacer(modifier = Modifier.padding(vertical = 10.dp))
-            if (projects.isNotEmpty()) {
-                ProjectsList(projects = projects)
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                uiState.isError.isNotEmpty() -> {
+                    // ErrorScreen
+                }
+
+                uiState.projects.isNotEmpty() -> {
+                    // TODO: Implement authenticated user in the user attribute
+                    ProjectsOverview(user = User(name = "Nikoll"), uiState.projects)
+                    ProjectsList(projects = uiState.projects)
+                }
             }
-
         }
-
     }
 }
 
 @Composable
-fun ProjectsOverview(userName: String, projectsCount: Int) {
-
+fun ProjectsOverview(user: User, projects: List<Project>) {
     Column(
         modifier = Modifier
             .width(360.dp)
@@ -102,13 +120,13 @@ fun ProjectsOverview(userName: String, projectsCount: Int) {
         horizontalAlignment = Alignment.Start,
     ) {
         Text(
-            text = "Hello, $userName",
+            text = "Hello, ${user.name}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "Your\nProjects ($projectsCount)",
+            text = "Your\nProjects (${projects.size})",
             style = MaterialTheme.typography.titleLarge.copy(
                 lineHeight = 40.sp
             ),
@@ -154,7 +172,7 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = project.projectName,
+                    text = project.name,
                     modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 40.sp,
@@ -162,16 +180,30 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     ),
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
+
+                val tasksText = if (project.tasks?.size == 1) {
+                    "${project.tasks.size} task"
+                } else {
+                    "${project.tasks?.size} tasks"
+                }
+
                 Text(
-                    text = project.tasksCount, modifier = Modifier.width(210.dp),
+                    text = tasksText, modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 30.sp,
                         lineHeight = 44.sp
                     ),
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
+
+                val usersText = if (project.participants.size == 1) {
+                    "${project.participants.size} user"
+                } else {
+                    "${project.participants.size} users"
+                }
+
                 Text(
-                    text = project.participantsCount, modifier = Modifier.width(210.dp),
+                    text = usersText, modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 20.sp,
                     ),

@@ -1,6 +1,9 @@
 package com.nocountry.listmate.ui.screens.createproject
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,50 +16,65 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.google.accompanist.flowlayout.FlowRow
 import com.nocountry.listmate.R
-import com.nocountry.listmate.data.tasks
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.ButtonComponent
 import com.nocountry.listmate.ui.components.InputTextFieldComponent
 import com.nocountry.listmate.ui.components.ParticipantSpotComponent
 import com.nocountry.listmate.ui.components.TaskItem
 import com.nocountry.listmate.ui.components.TopBarComponent
+import com.nocountry.listmate.ui.navigation.Destinations
+import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
-fun CreateProjectScreen() {
-
-    var projectTitle by rememberSaveable { mutableStateOf("") }
-    val tasks = rememberSaveable {
-        tasks
-    }
+fun CreateProjectScreen(
+    navHostController: NavHostController,
+    sharedViewModel: CreateProjectTaskSharedViewModel
+) {
+    val projectTitle by sharedViewModel.projectTitle.observeAsState("")
+    val tasks by sharedViewModel.tasks.observeAsState(mutableListOf())
+    val loading by sharedViewModel.loading.observeAsState(false)
     val dummyParticipants = listOf(
-        "Nikoll Quintero Chavez",
-        "Pepito Perez",
-        "Rosa Rodriguez",
-        "Moises",
-        "Yonisa"
+        User(
+            id = "user1",
+            name = "Alice Johnson",
+            email = "alice.johnson@example.com"
+        ),
+        User(
+            id = "user2",
+            name = "Bob Smith",
+            email = "bob.smith@example.com"
+        )
     )
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopBarComponent(title = R.string.create_project, navigationIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { navHostController.navigate(Destinations.HOME) }) {
                     Icon(
                         painter = painterResource(id = R.drawable.arrow_back),
                         contentDescription = "Arrow back"
@@ -65,80 +83,180 @@ fun CreateProjectScreen() {
             })
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            InputTextFieldComponent(
-                value = projectTitle,
-                onValueChange = { projectTitle = it },
-                label = R.string.project_name_input_label,
-                leadingIcon = null,
-                trailingIcon = { },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth()
-            )
-            InputTextFieldComponent(
-                value = "",
-                onValueChange = {},
-                label = R.string.find_participants_label,
-                leadingIcon = Icons.Default.Search,
-                trailingIcon = { /*TODO*/ },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth()
-
-            )
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                mainAxisSpacing = 8.dp,
-                crossAxisSpacing = 8.dp
-            ) {
-                dummyParticipants.forEach { participant ->
-                    ParticipantSpotComponent(name = participant)
+            item {
+                InputTextFieldComponent(
+                    value = projectTitle,
+                    onValueChange = { sharedViewModel.setProjectTitle(it) },
+                    label = R.string.project_name_input_label,
+                    leadingIcon = null,
+                    trailingIcon = { },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                InputTextFieldComponent(
+                    value = "",
+                    onValueChange = {},
+                    label = R.string.find_participants_label,
+                    leadingIcon = Icons.Default.Search,
+                    trailingIcon = { /*TODO*/ },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    mainAxisSpacing = 8.dp,
+                    crossAxisSpacing = 8.dp
+                ) {
+                    dummyParticipants.forEach { participant ->
+                        ParticipantSpotComponent(name = participant.name)
+                    }
                 }
             }
-            ButtonComponent(
-                text = R.string.addtask_button_label,
-                onClick = { /*TODO*/ },
-                backgroundColor = MaterialTheme.colorScheme.inversePrimary,
-                icon = Icons.Default.Add,
-                textColor = MaterialTheme.colorScheme.surfaceTint,
-                textStyle = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-            )
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.padding(10.dp)
-            ) {
+            item {
+                ButtonComponent(
+                    text = R.string.addtask_button_label,
+                    onClick = {
+                        if (projectTitle.isNotBlank()) {
+                            onAddTaskClick(
+                                sharedViewModel,
+                                dummyParticipants,
+                                navHostController
+                            )
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please insert project name",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    backgroundColor = MaterialTheme.colorScheme.inversePrimary,
+                    icon = Icons.Default.Add,
+                    textColor = MaterialTheme.colorScheme.surfaceTint,
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                )
+            }
+            if (tasks.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(vertical = 20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No tasks added",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray,
+                        )
+                    }
+                }
+            } else {
                 items(tasks) { task ->
-                    TaskItem(task = task)
+                    TaskItem(task)
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            ButtonComponent(
-                text = R.string.create_project_button_label,
-                onClick = { /*TODO*/ },
-                backgroundColor = Color(0xFFFFE086),
-                icon = null,
-                textColor = MaterialTheme.colorScheme.surfaceTint,
-                textStyle = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-            )
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                ButtonComponent(
+                    text = R.string.create_project_button_label,
+                    onClick = {
+                        if (projectTitle.isNotBlank()) {
+                            onCreateProjectClick(
+                                navHostController,
+                                sharedViewModel,
+                                "123Test"
+                            )
+
+
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please insert project name",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    backgroundColor = Color(0xFFFFE086),
+                    icon = null,
+                    textColor = MaterialTheme.colorScheme.surfaceTint,
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                )
+            }
+        }
+    }
+    if (loading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(modifier = Modifier.padding(10.dp))
+                Text(
+                    text = "Creating project", style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun CreateProjectScreenPreview() {
-    ListMateTheme {
-        CreateProjectScreen()
+private fun onAddTaskClick(
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
+    dummyParticipants: List<User>,
+    navHostController: NavHostController
+) {
+    createProjectTaskSharedViewModel.setProjectParticipants(dummyParticipants)
+    navHostController.navigate(Destinations.CREATE_TASK)
+}
+
+private fun onCreateProjectClick(
+    navHostController: NavHostController,
+    sharedViewModel: CreateProjectTaskSharedViewModel,
+    ownerId: String
+) {
+    sharedViewModel.createProjectAndTasks(ownerId) {
+        navHostController.navigate(Destinations.HOME)
     }
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun CreateProjectScreenPreview() {
+//    ListMateTheme {
+//        val mockViewModel = CreateProjectTaskSharedViewModel()
+//        CreateProjectScreen(
+//            navHostController = NavHostController(LocalContext.current),
+//            createProjectTaskSharedViewModel = mockViewModel
+//        )
+//    }
+//}
