@@ -25,11 +25,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -42,18 +44,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
-import com.nocountry.listmate.data.model.User
+import com.nocountry.listmate.data.model.Usuario
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun HomeScreen(
+    userId: String,
     homeScreenViewModel: HomeScreenViewModel = viewModel(factory = HomeScreenViewModel.provideFactory()),
     navHostController: NavHostController
 ) {
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
+    val scrollState = rememberScrollState()
+
+    val user = remember {
+        mutableStateOf<Usuario?>(null)
+    }
+    LaunchedEffect(userId) {
+        user.value = homeScreenViewModel.getUserById(userId)
+    }
 
     Scaffold(
         bottomBar = {
@@ -79,30 +90,31 @@ fun HomeScreen(
             )
         }
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
+                .verticalScroll(scrollState)
         ) {
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                when {
+                    uiState.isLoading -> {
                         CircularProgressIndicator()
                     }
-                }
 
-                uiState.isError.isNotEmpty() -> {
-                    // ErrorScreen
-                }
+                    uiState.isError.isNotEmpty() -> {
+                        //ErrorScreen
+                    }
 
-                uiState.projects.isNotEmpty() -> {
-                    // TODO: Implement authenticated user in the user attribute
-                    ProjectsOverview(user = User(name = "Nikoll"), uiState.projects)
-                    ProjectsList(projects = uiState.projects)
+                    uiState.projects.isNotEmpty() -> {
+                        user.value?.let { user ->
+                            ProjectsOverview(user = user)
+                            ProjectsList(projects = uiState.projects)
+                        }
+                    }
                 }
             }
         }
@@ -110,7 +122,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun ProjectsOverview(user: User, projects: List<Project>) {
+fun ProjectsOverview(user: Usuario) {
     Column(
         modifier = Modifier
             .width(360.dp)
@@ -120,13 +132,13 @@ fun ProjectsOverview(user: User, projects: List<Project>) {
         horizontalAlignment = Alignment.Start,
     ) {
         Text(
-            text = "Hello, ${user.name}",
+            text = "Hello, ${user.nombre}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "Your\nProjects (${projects.size})",
+            text = "Your\nProjects (${user.projects.size})",
             style = MaterialTheme.typography.titleLarge.copy(
                 lineHeight = 40.sp
             ),
@@ -172,7 +184,7 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = project.name,
+                    text = project.title,
                     modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 40.sp,
@@ -181,10 +193,10 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
 
-                val tasksText = if (project.tasks?.size == 1) {
-                    "${project.tasks.size} task"
+                val tasksText = if (project.tasks.size == 1) {
+                    "${project.tasks} task"
                 } else {
-                    "${project.tasks?.size} tasks"
+                    "${project.tasks} tasks"
                 }
 
                 Text(
@@ -196,10 +208,10 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
 
-                val usersText = if (project.participants.size == 1) {
-                    "${project.participants.size} user"
+                val usersText = if (project.users.size == 1) {
+                    "${project.users} user"
                 } else {
-                    "${project.participants.size} users"
+                    "${project.users} users"
                 }
 
                 Text(
@@ -229,6 +241,6 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
 @Composable
 fun HomeScreenPreview() {
     ListMateTheme {
-        HomeScreen(navHostController = NavHostController(LocalContext.current))
+        HomeScreen(userId = "", navHostController = NavHostController(LocalContext.current))
     }
 }
