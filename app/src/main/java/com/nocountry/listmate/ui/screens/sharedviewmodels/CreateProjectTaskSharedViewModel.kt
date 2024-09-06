@@ -82,6 +82,13 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         }
     }
 
+    fun fetchUsers(){
+        viewModelScope.launch(Dispatchers.IO) {
+
+        }
+
+    }
+
     private fun resetVariables() {
         _projectTitle.value = ""
         _tasks.value?.clear()

@@ -17,10 +17,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,6 +50,7 @@ import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateProjectScreen(
     navHostController: NavHostController,
@@ -119,13 +122,31 @@ fun CreateProjectScreen(
                 )
             }
             item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp) // Provide a specific height constraint
+                ) {
+                    SearchBar(
+                        query = "",  // You can adjust this default query value
+                        onQueryChange = { /* Handle query change */ },
+                        onSearch = { /* Handle search action */ },
+                        active = false,  // Ensure this is properly controlled
+                        onActiveChange = { /* Handle activation state */ },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Search suggestions or additional content can go here
+                    }
+                }
+            }
+            item {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     mainAxisSpacing = 8.dp,
                     crossAxisSpacing = 8.dp
                 ) {
                     dummyParticipants.forEach { participant ->
-                        ParticipantSpotComponent(name = participant.name)
+                        ParticipantSpotComponent(name = participant.name + " " + participant.lastName)
                     }
                 }
             }

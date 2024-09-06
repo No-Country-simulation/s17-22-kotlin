@@ -29,6 +29,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.nocountry.listmate.data.UsuarioManager
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.model.Usuario
 import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.navigation.Destinations
@@ -110,16 +111,16 @@ fun SignUpScreen(
                             .addOnCompleteListener{
                                 if(it.isSuccessful){
                                     FirebaseAuth.getInstance().signInWithEmailAndPassword(username, password)
-                                    val user = Usuario(
-                                        nombre = nombre,
-                                        apellido = apellido,
-                                        correo = username,
-                                        uid = FirebaseAuth.getInstance().currentUser?.uid?:""
+                                    val user = User(
+                                        name = nombre,
+                                        lastName = apellido,
+                                        email = username,
+                                        projects = emptyList()
                                     )
 
                                     UsuarioManager().guardarUsuario(user)
 
-                                    navHostController.popBackStack()
+                                    navHostController.navigate(Destinations.HOME)
                                 }
                                 else{
 //                                    displayAlert = true
