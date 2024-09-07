@@ -8,6 +8,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.firebase.firestore.FirebaseFirestore
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.data.model.Usuario
 import com.nocountry.listmate.data.repository.HomeRepositoryImpl
 import com.nocountry.listmate.data.repository.UserRepositoryImpl
@@ -37,9 +38,9 @@ class HomeScreenViewModel(
     private fun getProjectsById(userId: String) {
         _uiState.update { it.copy(isLoading = true) }
 
-        Log.d("HomeScreenViewModel", "Fetching project data for userId: $userId")
         viewModelScope.launch {
             try {
+                Log.d("HomeScreenViewModel", "Fetching project data for userId: $userId")
                 homeRepository.getProjectsById(userId).collect { projects ->
                     _uiState.update { it.copy(isLoading = false, projects = projects) }
 
@@ -55,7 +56,7 @@ class HomeScreenViewModel(
         }
     }
 
-    suspend fun getUserById(userId: String): Usuario? {
+    suspend fun getUserById(userId: String): User? {
         return try {
             userRepository.getUserById(userId).firstOrNull()
         } catch (e: Exception) {

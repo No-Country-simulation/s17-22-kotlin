@@ -2,6 +2,7 @@ package com.nocountry.listmate.ui.screens.createproject
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -50,7 +53,6 @@ import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateProjectScreen(
     navHostController: NavHostController,
@@ -59,18 +61,23 @@ fun CreateProjectScreen(
     val projectTitle by sharedViewModel.projectTitle.observeAsState("")
     val tasks by sharedViewModel.tasks.observeAsState(mutableListOf())
     val loading by sharedViewModel.loading.observeAsState(false)
-    val dummyParticipants = listOf(
-        User(
-            id = "user1",
-            name = "Alice Johnson",
-            email = "alice.johnson@example.com"
-        ),
-        User(
-            id = "user2",
-            name = "Bob Smith",
-            email = "bob.smith@example.com"
-        )
-    )
+    val searchText by sharedViewModel.searchText.collectAsState()
+    val users by sharedViewModel.users.collectAsState()
+    val isSearching by sharedViewModel.isSearching.collectAsState()
+    val projectParticipants by sharedViewModel.projectParticipants.collectAsState()
+
+//    val dummyParticipants = listOf(
+//        User(
+//            id = "user1",
+//            name = "Alice Johnson",
+//            email = "alice.johnson@example.com"
+//        ),
+//        User(
+//            id = "user2",
+//            name = "Bob Smith",
+//            email = "bob.smith@example.com"
+//        )
+//    )
 
     val context = LocalContext.current
 
@@ -104,38 +111,44 @@ fun CreateProjectScreen(
                         keyboardType = KeyboardType.Text,
                         capitalization = KeyboardCapitalization.Sentences
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = null
                 )
             }
             item {
-                InputTextFieldComponent(
-                    value = "",
-                    onValueChange = {},
-                    label = R.string.find_participants_label,
-                    leadingIcon = Icons.Default.Search,
-                    trailingIcon = { /*TODO*/ },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        capitalization = KeyboardCapitalization.Sentences
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp) // Provide a specific height constraint
-                ) {
-                    SearchBar(
-                        query = "",  // You can adjust this default query value
-                        onQueryChange = { /* Handle query change */ },
-                        onSearch = { /* Handle search action */ },
-                        active = false,  // Ensure this is properly controlled
-                        onActiveChange = { /* Handle activation state */ },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // Search suggestions or additional content can go here
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    InputTextFieldComponent(
+                        value = searchText,
+                        onValueChange = sharedViewModel::onSearchTextChange,
+                        label = R.string.find_participants_label,
+                        leadingIcon = Icons.Default.Search,
+                        trailingIcon = {},
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            capitalization = KeyboardCapitalization.Sentences
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = null
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    if (isSearching) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
+                    } else if (searchText.length >= 2) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            users.forEach { participant ->
+                                Text(
+                                    text = "${participant.name} ${participant.lastName}",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp)
+                                        .clickable {
+                                            sharedViewModel.onAddParticipantToProject(participant)
+                                        }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -145,7 +158,7 @@ fun CreateProjectScreen(
                     mainAxisSpacing = 8.dp,
                     crossAxisSpacing = 8.dp
                 ) {
-                    dummyParticipants.forEach { participant ->
+                    projectParticipants.forEach { participant ->
                         ParticipantSpotComponent(name = participant.name + " " + participant.lastName)
                     }
                 }
@@ -157,7 +170,7 @@ fun CreateProjectScreen(
                         if (projectTitle.isNotBlank()) {
                             onAddTaskClick(
                                 sharedViewModel,
-                                dummyParticipants,
+                                projectParticipants,
                                 navHostController
                             )
                         } else {

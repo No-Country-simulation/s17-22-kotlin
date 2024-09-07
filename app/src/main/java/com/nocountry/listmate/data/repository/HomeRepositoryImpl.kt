@@ -10,25 +10,19 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class HomeRepositoryImpl(private val firebase: FirebaseFirestore) : HomeRepository {
     override suspend fun getProjectsById(userId: String): Flow<List<Project>> = callbackFlow {
-        val projects = mutableListOf<Project>()
+        var projects: MutableList<Project>
 
         firebase.collection("projects")
-            .whereArrayContains("users", userId)
+            .whereEqualTo("ownerId", userId)
             .get()
             .addOnSuccessListener { result ->
-                for (document in result.documents) {
-                    val project = document.toObject(Project::class.java)
-                    if (project != null) {
-                        projects.add(project)
-                    }
-                }
+                projects = result.documents.mapNotNull { it.toObject(Project::class.java) }.toMutableList()
                 trySend(projects)
             }
             .addOnFailureListener { exception ->
                 Log.d("HomeRepositoryImpl", "Error getting projects: ", exception)
                 trySend(emptyList())
             }
-
         awaitClose()
     }
 }

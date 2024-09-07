@@ -25,6 +25,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +62,7 @@ fun CreateTaskScreen(
     var taskDescription by rememberSaveable { mutableStateOf("") }
     val selectedParticipant: MutableState<String> = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
-    val projectParticipants by sharedViewModel.projectParticipants.observeAsState(
+    val projectParticipants by sharedViewModel.projectParticipants.collectAsState(
         emptyList()
     )
     val task by sharedViewModel.tasks.observeAsState(mutableListOf())
@@ -95,7 +96,8 @@ fun CreateTaskScreen(
                     keyboardType = KeyboardType.Text,
                     capitalization = KeyboardCapitalization.Sentences
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = null
             )
             Spacer(modifier = Modifier.padding(0.dp, 2.dp))
             Text(text = "Assigned to:", style = MaterialTheme.typography.bodyMedium)
@@ -114,7 +116,8 @@ fun CreateTaskScreen(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(200.dp),
+                placeholder = null
             )
             Spacer(modifier = Modifier.weight(1f))
             ButtonComponent(
@@ -182,17 +185,17 @@ fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants:
                 onDismissRequest = { isExpanded = false },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                projectParticipants.forEachIndexed { _, text ->
+                projectParticipants.forEachIndexed { _, user ->
                     DropdownMenuItem(
                         modifier = Modifier.fillMaxWidth(),
                         text = {
                             Text(
-                                text = text.name, style = MaterialTheme.typography.bodyMedium,
+                                text = "${user.name} ${user.lastName}", style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
                         },
                         onClick = {
-                            selectedParticipant.value = text.name
+                            selectedParticipant.value = user.name
                             isExpanded = false
                         },
                     )

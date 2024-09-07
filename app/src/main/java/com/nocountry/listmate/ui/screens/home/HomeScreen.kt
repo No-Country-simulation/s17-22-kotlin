@@ -44,7 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
-import com.nocountry.listmate.data.model.Usuario
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.theme.ListMateTheme
@@ -57,10 +57,9 @@ fun HomeScreen(
 ) {
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
-    val scrollState = rememberScrollState()
 
     val user = remember {
-        mutableStateOf<Usuario?>(null)
+        mutableStateOf<User?>(null)
     }
     LaunchedEffect(userId) {
         user.value = homeScreenViewModel.getUserById(userId)
@@ -94,7 +93,6 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-                .verticalScroll(scrollState)
         ) {
             Column(
                 modifier = Modifier
@@ -102,7 +100,7 @@ fun HomeScreen(
             ) {
                 when {
                     uiState.isLoading -> {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     }
 
                     uiState.isError.isNotEmpty() -> {
@@ -112,8 +110,8 @@ fun HomeScreen(
                     uiState.projects.isNotEmpty() -> {
                         user.value?.let { user ->
                             ProjectsOverview(user = user)
-                            ProjectsList(projects = uiState.projects)
                         }
+                        ProjectsList(projects = uiState.projects)
                     }
                 }
             }
@@ -122,7 +120,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun ProjectsOverview(user: Usuario) {
+fun ProjectsOverview(user: User) {
     Column(
         modifier = Modifier
             .width(360.dp)
@@ -132,7 +130,7 @@ fun ProjectsOverview(user: Usuario) {
         horizontalAlignment = Alignment.Start,
     ) {
         Text(
-            text = "Hello, ${user.nombre}",
+            text = "Hello, ${user.name}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -184,7 +182,7 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = project.title,
+                    text = project.name,
                     modifier = Modifier.width(210.dp),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 40.sp,
@@ -193,10 +191,10 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
 
-                val tasksText = if (project.tasks.size == 1) {
-                    "${project.tasks} task"
+                val tasksText = if (project.tasks?.size == 1) {
+                    "${project.tasks.size} task"
                 } else {
-                    "${project.tasks} tasks"
+                    "${project.tasks?.size} tasks"
                 }
 
                 Text(
@@ -208,10 +206,10 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
 
-                val usersText = if (project.users.size == 1) {
-                    "${project.users} user"
+                val usersText = if (project.participants.size == 1) {
+                    "${project.participants.size} user"
                 } else {
-                    "${project.users} users"
+                    "${project.participants.size} users"
                 }
 
                 Text(

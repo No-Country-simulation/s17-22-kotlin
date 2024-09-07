@@ -15,13 +15,27 @@ import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.data.repository.ProjectRepositoryImpl
 import com.nocountry.listmate.domain.ProjectRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRepository) :
     ViewModel() {
-    private val _projectParticipants = MutableLiveData<List<User>>()
-    val projectParticipants: LiveData<List<User>> get() = _projectParticipants
+
+
+    private val _users = MutableStateFlow(listOf<User>())
+
+    private val _projectParticipants = MutableStateFlow(listOf<User>())
+    val projectParticipants = _projectParticipants.asStateFlow()
 
     private val _tasks = MutableLiveData<MutableList<Task>>(mutableListOf())
     val tasks: LiveData<MutableList<Task>> get() = _tasks
@@ -34,8 +48,14 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> get() = _loading
 
-    fun setProjectParticipants(projectParticipants: List<User>) {
-        _projectParticipants.value = projectParticipants
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    fun setProjectParticipants(users: List<User>) {
+        _users.value = users
     }
 
     fun setTasks(tasks: MutableList<Task>) {
@@ -48,8 +68,9 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
 
     fun createProjectAndTasks(ownerId: String, onProjectCreated: () -> Unit) {
         val title = _projectTitle.value
+
         val participants = _projectParticipants.value
-        val participantsId = participants?.map { it.id }
+        val participantsId = participants.map { it.uid }
 
         val tasks = _tasks.value
         val tasksId = tasks?.map { it.id }
@@ -57,36 +78,77 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _loading.postValue(true)
-                if (title != null && participants?.isNotEmpty() == true) {
+                if (title != null && participants.isNotEmpty()) {
                     projectRepository.createProject(title, ownerId, participantsId, tasksId)
                         .collect { createdProject ->
                             _project.postValue(createdProject)
                             if (tasks != null) {
-                                projectRepository.createTasks(createdProject.id, tasks).collect { createdTasks ->
-                                    _tasks.postValue(createdTasks.toMutableList())
-                                    withContext(Dispatchers.Main) {
-                                        resetVariables()
-                                        onProjectCreated()
-                                        _loading.postValue(false)
+                                projectRepository.createTasks(createdProject.id, tasks)
+                                    .collect { createdTasks ->
+                                        _tasks.postValue(createdTasks.toMutableList())
+                                        withContext(Dispatchers.Main) {
+                                            resetVariables()
+                                            onProjectCreated()
+                                            _loading.postValue(false)
+                                        }
                                     }
-                                }
                             }
-
+//                            else {
+//                                withContext(Dispatchers.Main) {
+//                                    resetVariables()
+//                                    onProjectCreated()
+//                                    _loading.postValue(false)
+//                                    Log.d("CreateProject", "Navigating to Home screen")
+//                                }
+//                            }
                         }
-
                 }
             } catch (e: Exception) {
                 _loading.postValue(false)
-                Log.e("CreateProjectTask", "Error creating project and tasks: ${e.message ?: "Unknown error"}")
+                Log.e(
+                    "CreateProjectTask",
+                    "Error creating project and tasks: ${e.message ?: "Unknown error"}"
+                )
             }
         }
     }
 
-    fun fetchUsers(){
-        viewModelScope.launch(Dispatchers.IO) {
-
+    @OptIn(FlowPreview::class)
+    val users = searchText
+        .debounce(1000L)
+        .onEach {
+            fetchUsers()
+            _isSearching.update { true }
         }
+        .combine(_users) { text, participants ->
+            if (text.isBlank()) {
+                participants
+            } else {
+                participants.filter {
+                    it.doesMatchSearchQuery(text)
+                }
+            }
+        }
+        .onEach { _isSearching.update { false } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _users.value)
 
+    fun onSearchTextChange(text: String) {
+        _searchText.value = text
+    }
+
+
+    private fun fetchUsers() {
+        viewModelScope.launch(Dispatchers.IO) {
+            projectRepository.fetchUsers().collect { participantsList ->
+                _users.value = participantsList
+            }
+        }
+    }
+
+    fun onAddParticipantToProject(user: User){
+        _projectParticipants.update { selectedParticipant ->
+            selectedParticipant + user
+        }
     }
 
     private fun resetVariables() {

@@ -147,7 +147,10 @@ fun LoginScreen(navHostController: NavHostController) {
                             .signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener {
                                 if (it.isSuccessful) {
-                                    navHostController.navigate(Destinations.HOME)
+                                    val userId = FirebaseAuth.getInstance().currentUser?.uid
+                                    if (userId != null) {
+                                        navHostController.navigate("${Destinations.HOME}/$userId")
+                                    }
                                 } else {
                                     displayAlert = true
                                 }
