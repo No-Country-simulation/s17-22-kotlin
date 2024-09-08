@@ -31,11 +31,10 @@ import kotlinx.coroutines.withContext
 class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRepository) :
     ViewModel() {
 
-
     private val _users = MutableStateFlow(listOf<User>())
 
-    private val _projectParticipants = MutableStateFlow(listOf<User>())
-    val projectParticipants = _projectParticipants.asStateFlow()
+    private val _projectParticipants = MutableLiveData<MutableList<User>>(mutableListOf())
+    val projectParticipants: LiveData<MutableList<User>> get() = _projectParticipants
 
     private val _tasks = MutableLiveData<MutableList<Task>>(mutableListOf())
     val tasks: LiveData<MutableList<Task>> get() = _tasks
@@ -70,29 +69,35 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         val title = _projectTitle.value
 
         val participants = _projectParticipants.value
-        val participantsId = participants.map { it.uid }
+        val participantsId = participants?.map { it.id }
+        Log.d("ParticipantsId", "Participants IDs: $participantsId")
 
         val tasks = _tasks.value
         val tasksId = tasks?.map { it.id }
+        Log.d("TasksId", "Tasks IDs: $tasksId")
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _loading.postValue(true)
-                if (title != null && participants.isNotEmpty()) {
+                if (title != null && participants?.isNotEmpty() == true) {
                     projectRepository.createProject(title, ownerId, participantsId, tasksId)
                         .collect { createdProject ->
                             _project.postValue(createdProject)
-                            if (tasks != null) {
-                                projectRepository.createTasks(createdProject.id, tasks)
-                                    .collect { createdTasks ->
-                                        _tasks.postValue(createdTasks.toMutableList())
-                                        withContext(Dispatchers.Main) {
-                                            resetVariables()
-                                            onProjectCreated()
-                                            _loading.postValue(false)
-                                        }
+                            projectRepository.addParticipantsIds(createdProject.id, participants)
+                                .collect { participantIds ->
+                                    Log.d("CreateProject", "Added participants: $participantIds")
+                                    if (tasks != null) {
+                                        projectRepository.createTasks(createdProject.id, tasks)
+                                            .collect { createdTasks ->
+                                                _tasks.postValue(createdTasks.toMutableList())
+                                                withContext(Dispatchers.Main) {
+                                                    resetVariables()
+                                                    onProjectCreated()
+                                                    _loading.postValue(false)
+                                                }
+                                            }
                                     }
-                            }
+                                }
 //                            else {
 //                                withContext(Dispatchers.Main) {
 //                                    resetVariables()
@@ -145,16 +150,24 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         }
     }
 
-    fun onAddParticipantToProject(user: User){
-        _projectParticipants.update { selectedParticipant ->
-            selectedParticipant + user
+    fun onAddParticipantToProject(user: User) {
+        _projectParticipants.value?.let { currentParticipants ->
+            // Create a new list with the existing participants and the new user
+            val updatedParticipants = currentParticipants.toMutableList().apply {
+                add(user)
+            }
+            // Set the new list to the LiveData
+            _projectParticipants.value = updatedParticipants
         }
     }
+
 
     private fun resetVariables() {
         _projectTitle.value = ""
         _tasks.value?.clear()
         _tasks.value = _tasks.value
-        _projectParticipants.value = emptyList()
+        _projectParticipants.value?.clear()
+        _projectParticipants.value = _projectParticipants.value
+        _searchText.value = ""
     }
 }

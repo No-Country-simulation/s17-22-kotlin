@@ -63,6 +63,33 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
             awaitClose()
         }
 
+    override suspend fun addParticipantsIds(projectId: String, participants: List<User>): Flow<List<String>> =
+        callbackFlow {
+            val participantsIds = mutableListOf<String>()
+
+            participants.forEach { participant ->
+                val querySnapshot = firebase.collection("users")
+                    .whereEqualTo("email", participant.email)
+                    .get()
+                    .await()
+
+                // If a document exists for this participant, get the ID
+                if (!querySnapshot.isEmpty) {
+                    val userDoc = querySnapshot.documents.first()
+                    val userId = userDoc.id
+                    participantsIds.add(userId)
+                }
+            }
+
+            firebase.collection("projects")
+                .document(projectId)
+                .update("participants", participantsIds)
+                .await()
+
+            trySend(participantsIds)
+            awaitClose()
+        }
+
     override suspend fun fetchUsers(): Flow<List<User>> = callbackFlow {
         val usersCollection = firebase.collection("users")
         val snapshotListener = usersCollection.addSnapshotListener { snapshot, exception ->

@@ -64,7 +64,7 @@ fun CreateProjectScreen(
     val searchText by sharedViewModel.searchText.collectAsState()
     val users by sharedViewModel.users.collectAsState()
     val isSearching by sharedViewModel.isSearching.collectAsState()
-    val projectParticipants by sharedViewModel.projectParticipants.collectAsState()
+    val projectParticipants by sharedViewModel.projectParticipants.observeAsState(mutableListOf())
 
 //    val dummyParticipants = listOf(
 //        User(
@@ -145,6 +145,7 @@ fun CreateProjectScreen(
                                         .padding(vertical = 16.dp)
                                         .clickable {
                                             sharedViewModel.onAddParticipantToProject(participant)
+                                            sharedViewModel.onSearchTextChange("")
                                         }
                                 )
                             }
@@ -266,10 +267,10 @@ fun CreateProjectScreen(
 
 private fun onAddTaskClick(
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
-    dummyParticipants: List<User>,
+    projectParticipants: List<User>,
     navHostController: NavHostController
 ) {
-    createProjectTaskSharedViewModel.setProjectParticipants(dummyParticipants)
+    createProjectTaskSharedViewModel.setProjectParticipants(projectParticipants)
     navHostController.navigate(Destinations.CREATE_TASK)
 }
 

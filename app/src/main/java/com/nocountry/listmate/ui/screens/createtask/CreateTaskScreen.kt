@@ -62,9 +62,7 @@ fun CreateTaskScreen(
     var taskDescription by rememberSaveable { mutableStateOf("") }
     val selectedParticipant: MutableState<String> = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
-    val projectParticipants by sharedViewModel.projectParticipants.collectAsState(
-        emptyList()
-    )
+    val projectParticipants by sharedViewModel.projectParticipants.observeAsState(mutableListOf())
     val task by sharedViewModel.tasks.observeAsState(mutableListOf())
 
     Scaffold(
@@ -130,7 +128,7 @@ fun CreateTaskScreen(
                         navHostController,
                         context,
                         task,
-                        sharedViewModel
+                        sharedViewModel,
                     )
                 },
                 backgroundColor = MaterialTheme.colorScheme.inversePrimary,
@@ -219,6 +217,7 @@ private fun addTaskValidation(
         task.add(newTask)
         createProjectTaskSharedViewModel.setTasks(task)
         navHostController.navigate(Destinations.CREATE_PROJECT)
+        createProjectTaskSharedViewModel.onSearchTextChange("")
     } else {
         Toast.makeText(
             context,
