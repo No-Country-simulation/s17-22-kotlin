@@ -51,33 +51,23 @@ import com.nocountry.listmate.ui.components.TaskItem
 import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun CreateProjectScreen(
     navHostController: NavHostController,
-    sharedViewModel: CreateProjectTaskSharedViewModel
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
+    sharedViewModel: SharedViewModel
 ) {
-    val projectTitle by sharedViewModel.projectTitle.observeAsState("")
-    val tasks by sharedViewModel.tasks.observeAsState(mutableListOf())
-    val loading by sharedViewModel.loading.observeAsState(false)
-    val searchText by sharedViewModel.searchText.collectAsState()
-    val users by sharedViewModel.users.collectAsState()
-    val isSearching by sharedViewModel.isSearching.collectAsState()
-    val projectParticipants by sharedViewModel.projectParticipants.observeAsState(mutableListOf())
-
-//    val dummyParticipants = listOf(
-//        User(
-//            id = "user1",
-//            name = "Alice Johnson",
-//            email = "alice.johnson@example.com"
-//        ),
-//        User(
-//            id = "user2",
-//            name = "Bob Smith",
-//            email = "bob.smith@example.com"
-//        )
-//    )
+    val projectTitle by createProjectTaskSharedViewModel.projectTitle.observeAsState("")
+    val tasks by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
+    val loading by createProjectTaskSharedViewModel.loading.observeAsState(false)
+    val searchText by createProjectTaskSharedViewModel.searchText.collectAsState()
+    val users by createProjectTaskSharedViewModel.users.collectAsState()
+    val isSearching by createProjectTaskSharedViewModel.isSearching.collectAsState()
+    val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(mutableListOf())
+    val userId by sharedViewModel.userId.collectAsState()
 
     val context = LocalContext.current
 
@@ -103,7 +93,7 @@ fun CreateProjectScreen(
             item {
                 InputTextFieldComponent(
                     value = projectTitle,
-                    onValueChange = { sharedViewModel.setProjectTitle(it) },
+                    onValueChange = { createProjectTaskSharedViewModel.setProjectTitle(it) },
                     label = R.string.project_name_input_label,
                     leadingIcon = null,
                     trailingIcon = { },
@@ -119,7 +109,7 @@ fun CreateProjectScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     InputTextFieldComponent(
                         value = searchText,
-                        onValueChange = sharedViewModel::onSearchTextChange,
+                        onValueChange = createProjectTaskSharedViewModel::onSearchTextChange,
                         label = R.string.find_participants_label,
                         leadingIcon = Icons.Default.Search,
                         trailingIcon = {},
@@ -144,8 +134,8 @@ fun CreateProjectScreen(
                                         .fillMaxWidth()
                                         .padding(vertical = 16.dp)
                                         .clickable {
-                                            sharedViewModel.onAddParticipantToProject(participant)
-                                            sharedViewModel.onSearchTextChange("")
+                                            createProjectTaskSharedViewModel.onAddParticipantToProject(participant)
+                                            createProjectTaskSharedViewModel.onSearchTextChange("")
                                         }
                                 )
                             }
@@ -170,7 +160,7 @@ fun CreateProjectScreen(
                     onClick = {
                         if (projectTitle.isNotBlank()) {
                             onAddTaskClick(
-                                sharedViewModel,
+                                createProjectTaskSharedViewModel,
                                 projectParticipants,
                                 navHostController
                             )
@@ -219,8 +209,8 @@ fun CreateProjectScreen(
                         if (projectTitle.isNotBlank()) {
                             onCreateProjectClick(
                                 navHostController,
-                                sharedViewModel,
-                                "123Test"
+                                createProjectTaskSharedViewModel,
+                                userId
                             )
 
 

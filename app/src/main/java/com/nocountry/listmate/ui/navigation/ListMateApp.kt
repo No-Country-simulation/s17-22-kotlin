@@ -24,6 +24,7 @@ import com.nocountry.listmate.ui.screens.profile.ProfileScreen
 import com.nocountry.listmate.ui.screens.register.SignUpScreen
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModelFactory
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 
 @Composable
 fun ListMateApp(navHostController: NavHostController = rememberNavController()) {
@@ -35,6 +36,8 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
         factory = CreateProjectTaskSharedViewModelFactory(projectRepository)
     )
 
+    val sharedViewModel: SharedViewModel = viewModel()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -44,18 +47,20 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 SignUpScreen(navHostController = navHostController)
             }
             composable(Destinations.LOGIN) {
-                LoginScreen(navHostController = navHostController)
+                LoginScreen(navHostController = navHostController, sharedViewModel = sharedViewModel)
             }
             composable(
-                route = "${Destinations.HOME}/{${Destinations.USER_ID}}",
-                arguments = listOf(
-                    navArgument(Destinations.USER_ID) { type = NavType.StringType }
-                )
-            ) { backStackEntry ->
-                val userId =
-                    requireNotNull(backStackEntry.arguments?.getString(Destinations.USER_ID))
+                Destinations.HOME
+//                route = "${Destinations.HOME}/{${Destinations.USER_ID}}",
+//                arguments = listOf(
+//                    navArgument(Destinations.USER_ID) { type = NavType.StringType }
 
-                HomeScreen(userId = userId, navHostController = navHostController)
+            ) {
+//            backStackEntry ->
+//                val userId =
+//                    requireNotNull(backStackEntry.arguments?.getString(Destinations.USER_ID))
+
+                HomeScreen(navHostController = navHostController, sharedViewModel = sharedViewModel)
             }
             composable(Destinations.MY_TASKS) {
                 MyTasksScreen(navHostController = navHostController)
@@ -66,13 +71,14 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
             composable(Destinations.CREATE_PROJECT) {
                 CreateProjectScreen(
                     navHostController = navHostController,
-                    sharedViewModel = createProjectTaskSharedViewModel
-                )
+                    createProjectTaskSharedViewModel = createProjectTaskSharedViewModel,
+                    sharedViewModel = sharedViewModel
+                    )
             }
             composable(Destinations.CREATE_TASK) {
                 CreateTaskScreen(
                     navHostController = navHostController,
-                    sharedViewModel = createProjectTaskSharedViewModel
+                    createProjectTaskSharedViewModel = createProjectTaskSharedViewModel,
                 )
             }
         }

@@ -42,26 +42,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
 import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun HomeScreen(
-    userId: String,
     homeScreenViewModel: HomeScreenViewModel = viewModel(factory = HomeScreenViewModel.provideFactory()),
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    sharedViewModel: SharedViewModel
 ) {
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
+    val userId by sharedViewModel.userId.collectAsState()
 
     val user = remember {
         mutableStateOf<User?>(null)
     }
     LaunchedEffect(userId) {
+
         user.value = homeScreenViewModel.getUserById(userId)
     }
 
@@ -71,7 +75,10 @@ fun HomeScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { navHostController.navigate(Destinations.CREATE_PROJECT) },
+                onClick = { if (userId.isNotEmpty()){
+//                    navHostController.navigate("${Destinations.CREATE_PROJECT}/$userId")
+                    navHostController.navigate(Destinations.CREATE_PROJECT)
+                } },
                 icon = {
                     Icon(
                         Icons.Filled.Add,
@@ -110,8 +117,10 @@ fun HomeScreen(
                     uiState.projects.isNotEmpty() -> {
                         user.value?.let { user ->
                             ProjectsOverview(user = user)
+
                         }
                         ProjectsList(projects = uiState.projects)
+
                     }
                 }
             }
@@ -235,10 +244,12 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    ListMateTheme {
-        HomeScreen(userId = "", navHostController = NavHostController(LocalContext.current))
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HomeScreenPreview() {
+//    val navController = rememberNavController()
+//    val sharedViewModel = SharedViewModel("userId")
+//    ListMateTheme {
+//        HomeScreen(navHostController = navController, sharedViewModel = sharedViewModel)
+//    }
+//}

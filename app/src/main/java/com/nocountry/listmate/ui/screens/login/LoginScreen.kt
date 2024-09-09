@@ -48,17 +48,19 @@ import com.google.firebase.auth.FirebaseAuth
 import com.nocountry.listmate.R
 import com.nocountry.listmate.ui.components.TopBar
 import com.nocountry.listmate.ui.navigation.Destinations
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
+
+//@Composable
+//@Preview
+//fun LogInPreview() {
+//    val navController = rememberNavController()
+//    val sharedViewModel = SharedViewModel()
+//    LoginScreen(navController, sharedViewModel)
+//}
 
 @Composable
-@Preview
-fun LogInPreview() {
-    LoginScreen(rememberNavController())
 
-}
-
-@Composable
-
-fun LoginScreen(navHostController: NavHostController) {
+fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(true) }
@@ -149,7 +151,8 @@ fun LoginScreen(navHostController: NavHostController) {
                                 if (it.isSuccessful) {
                                     val userId = FirebaseAuth.getInstance().currentUser?.uid
                                     if (userId != null) {
-                                        navHostController.navigate("${Destinations.HOME}/$userId")
+                                        sharedViewModel.setUserId(userId)
+                                        navHostController.navigate(Destinations.HOME)
                                     }
                                 } else {
                                     displayAlert = true

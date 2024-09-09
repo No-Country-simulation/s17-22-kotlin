@@ -30,8 +30,9 @@ class HomeScreenViewModel(
     private val _uiState: MutableStateFlow<HomeUiState> = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+
     init {
-        val userId: String = checkNotNull(savedStateHandle[Destinations.USER_ID])
+        val userId = savedStateHandle.get<String>("userId") ?: ""
         getProjectsById(userId)
     }
 

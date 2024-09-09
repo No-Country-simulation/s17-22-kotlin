@@ -55,15 +55,15 @@ import com.nocountry.listmate.ui.theme.ListMateTheme
 @Composable
 fun CreateTaskScreen(
     navHostController: NavHostController,
-    sharedViewModel: CreateProjectTaskSharedViewModel
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel
 ) {
 
     var taskTitle by rememberSaveable { mutableStateOf("") }
     var taskDescription by rememberSaveable { mutableStateOf("") }
     val selectedParticipant: MutableState<String> = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
-    val projectParticipants by sharedViewModel.projectParticipants.observeAsState(mutableListOf())
-    val task by sharedViewModel.tasks.observeAsState(mutableListOf())
+    val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(mutableListOf())
+    val task by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
 
     Scaffold(
         topBar = {
@@ -128,7 +128,7 @@ fun CreateTaskScreen(
                         navHostController,
                         context,
                         task,
-                        sharedViewModel,
+                        createProjectTaskSharedViewModel,
                     )
                 },
                 backgroundColor = MaterialTheme.colorScheme.inversePrimary,
