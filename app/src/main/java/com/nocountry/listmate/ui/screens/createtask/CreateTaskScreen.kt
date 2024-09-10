@@ -49,13 +49,15 @@ import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.components.ButtonComponent
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 
 @Composable
 fun CreateTaskScreen(
     navHostController: NavHostController,
-    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
+    sharedViewModel: SharedViewModel
 ) {
 
     var taskTitle by rememberSaveable { mutableStateOf("") }

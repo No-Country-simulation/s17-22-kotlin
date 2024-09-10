@@ -15,6 +15,7 @@ import com.nocountry.listmate.data.repository.UserRepositoryImpl
 import com.nocountry.listmate.domain.HomeRepository
 import com.nocountry.listmate.domain.UserRepository
 import com.nocountry.listmate.ui.navigation.Destinations
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,11 +30,14 @@ class HomeScreenViewModel(
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<HomeUiState> = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    val userId = savedStateHandle.get<String>("userId")
 
 
     init {
-        val userId = savedStateHandle.get<String>("userId") ?: ""
-        getProjectsById(userId)
+
+        if (userId != null) {
+            getProjectsById(userId)
+        }
     }
 
     private fun getProjectsById(userId: String) {
@@ -68,10 +72,10 @@ class HomeScreenViewModel(
 
 
     companion object {
-        fun provideFactory(): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun provideFactory(userId: String): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val savedStateHandle = extras.createSavedStateHandle()
+                val savedStateHandle = SavedStateHandle(mapOf("userId" to userId))
                 return HomeScreenViewModel(
                     HomeRepositoryImpl(FirebaseFirestore.getInstance()),
                     UserRepositoryImpl(FirebaseFirestore.getInstance()),
@@ -80,5 +84,6 @@ class HomeScreenViewModel(
             }
         }
     }
+
 
 }

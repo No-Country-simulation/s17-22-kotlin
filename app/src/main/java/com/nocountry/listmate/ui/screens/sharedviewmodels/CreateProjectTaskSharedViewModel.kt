@@ -69,7 +69,7 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         val title = _projectTitle.value
 
         val participants = _projectParticipants.value
-        val participantsId = participants?.map { it.id }
+        val participantsId = participants?.map { it.uid }
         Log.d("ParticipantsId", "Participants IDs: $participantsId")
 
         val tasks = _tasks.value
@@ -96,16 +96,15 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
                                                     _loading.postValue(false)
                                                 }
                                             }
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            resetVariables()
+                                            onProjectCreated()
+                                            _loading.postValue(false)
+                                            Log.d("CreateProject", "Navigating to Home screen")
+                                        }
                                     }
                                 }
-//                            else {
-//                                withContext(Dispatchers.Main) {
-//                                    resetVariables()
-//                                    onProjectCreated()
-//                                    _loading.postValue(false)
-//                                    Log.d("CreateProject", "Navigating to Home screen")
-//                                }
-//                            }
                         }
                 }
             } catch (e: Exception) {

@@ -79,6 +79,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 CreateTaskScreen(
                     navHostController = navHostController,
                     createProjectTaskSharedViewModel = createProjectTaskSharedViewModel,
+                    sharedViewModel = sharedViewModel
                 )
             }
         }

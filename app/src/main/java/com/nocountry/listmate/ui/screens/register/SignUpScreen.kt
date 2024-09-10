@@ -115,12 +115,16 @@ fun SignUpScreen(
                             .addOnCompleteListener{
                                 if(it.isSuccessful){
                                     FirebaseAuth.getInstance().signInWithEmailAndPassword(username, password)
-                                    val user = User(
-                                        name = nombre,
-                                        lastName = apellido,
-                                        email = username,
-                                        projects = emptyList()
-                                    )
+                                    val user =
+                                        FirebaseAuth.getInstance().currentUser?.uid?.let { userId ->
+                                            User(
+                                                name = nombre,
+                                                lastName = apellido,
+                                                email = username,
+                                                projects = emptyList(),
+                                                uid = userId
+                                            )
+                                        }
 
                                     UsuarioManager().guardarUsuario(user)
 

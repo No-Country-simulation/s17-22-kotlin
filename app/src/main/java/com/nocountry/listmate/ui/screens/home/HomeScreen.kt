@@ -53,19 +53,22 @@ import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun HomeScreen(
-    homeScreenViewModel: HomeScreenViewModel = viewModel(factory = HomeScreenViewModel.provideFactory()),
     navHostController: NavHostController,
     sharedViewModel: SharedViewModel
 ) {
 
-    val uiState by homeScreenViewModel.uiState.collectAsState()
     val userId by sharedViewModel.userId.collectAsState()
+
+    val homeScreenViewModel: HomeScreenViewModel = viewModel(
+        factory = HomeScreenViewModel.provideFactory(userId)
+    )
+
+    val uiState by homeScreenViewModel.uiState.collectAsState()
 
     val user = remember {
         mutableStateOf<User?>(null)
     }
     LaunchedEffect(userId) {
-
         user.value = homeScreenViewModel.getUserById(userId)
     }
 
@@ -75,10 +78,12 @@ fun HomeScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { if (userId.isNotEmpty()){
+                onClick = {
+                    if (userId.isNotEmpty()) {
 //                    navHostController.navigate("${Destinations.CREATE_PROJECT}/$userId")
-                    navHostController.navigate(Destinations.CREATE_PROJECT)
-                } },
+                        navHostController.navigate(Destinations.CREATE_PROJECT)
+                    }
+                },
                 icon = {
                     Icon(
                         Icons.Filled.Add,
@@ -116,11 +121,22 @@ fun HomeScreen(
 
                     uiState.projects.isNotEmpty() -> {
                         user.value?.let { user ->
-                            ProjectsOverview(user = user)
-
+                            ProjectsOverview(user = user, uiState.projects)
                         }
                         ProjectsList(projects = uiState.projects)
 
+                    }
+
+                    uiState.projects.isEmpty() -> {
+                        user.value?.let { user ->
+                            ProjectsOverview(user = user, uiState.projects)
+                        }
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "No projects added", color = Color.Gray)
+                        }
                     }
                 }
             }
@@ -129,7 +145,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun ProjectsOverview(user: User) {
+fun ProjectsOverview(user: User, projects: List<Project>) {
     Column(
         modifier = Modifier
             .width(360.dp)
@@ -145,7 +161,7 @@ fun ProjectsOverview(user: User) {
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "Your\nProjects (${user.projects.size})",
+            text = "Your\nProjects (${projects.size})",
             style = MaterialTheme.typography.titleLarge.copy(
                 lineHeight = 40.sp
             ),

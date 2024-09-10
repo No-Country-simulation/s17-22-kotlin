@@ -73,11 +73,12 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
                     .get()
                     .await()
 
-                // If a document exists for this participant, get the ID
                 if (!querySnapshot.isEmpty) {
                     val userDoc = querySnapshot.documents.first()
-                    val userId = userDoc.id
-                    participantsIds.add(userId)
+                    val userId = userDoc.getString("uid")
+                    if (userId != null) {
+                        participantsIds.add(userId)
+                    }
                 }
             }
 
