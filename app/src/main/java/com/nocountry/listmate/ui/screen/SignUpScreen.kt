@@ -29,7 +29,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.nocountry.listmate.data.UsuarioManager
-import com.nocountry.listmate.model.Usuario
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.navigation.Destinations
 
@@ -44,8 +44,8 @@ fun SignUpPreview(){
 fun SignUpScreen(
     navHostController: NavHostController
 ){
-    var nombre by remember { mutableStateOf("") }
-    var apellido by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var lastname by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordRepeat by remember { mutableStateOf("") }
@@ -71,11 +71,11 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally
 
         ) {
-            Input(label = "Name", value =nombre){
-                nombre = it
+            Input(label = "Name", value = name){
+               name = it
             }
-            Input(label = "Lastname", value =apellido){
-                apellido = it
+            Input(label = "Lastname", value = lastname){
+                lastname = it
             }
             Input(label = "Email", value = username){
                 username = it
@@ -110,10 +110,10 @@ fun SignUpScreen(
                             .addOnCompleteListener{
                                 if(it.isSuccessful){
                                     FirebaseAuth.getInstance().signInWithEmailAndPassword(username, password)
-                                    val user = Usuario(
-                                        nombre = nombre,
-                                        apellido = apellido,
-                                        correo = username,
+                                    val user = User(
+                                        name = name,
+                                        lastName = lastname,
+                                        email = username,
                                         uid = FirebaseAuth.getInstance().currentUser?.uid?:""
                                     )
 

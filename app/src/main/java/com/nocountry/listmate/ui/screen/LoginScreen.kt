@@ -1,5 +1,7 @@
 package com.nocountry.listmate.ui.screen
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,9 +46,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import com.nocountry.listmate.R
 import com.nocountry.listmate.componentes.TopBar
+import com.nocountry.listmate.singleton.GlobalUser
 import com.nocountry.listmate.ui.navigation.Destinations
 
 @Composable
@@ -58,9 +63,9 @@ fun LogInPreview(){
 @Composable
 
 fun LoginScreen(navHostController: NavHostController){
-    var email by remember { mutableStateOf("")}
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(true) }
+    var email by remember { mutableStateOf("belletommasi@gmail.com")}
+    var password by remember { mutableStateOf("belle111") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var displayAlert by remember { mutableStateOf(false) }
 
     Column(
@@ -132,7 +137,7 @@ fun LoginScreen(navHostController: NavHostController){
                 trailingIcon = {
                     if (password.isNotBlank()) {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            val icon = if(passwordVisible) R.drawable.eye_slash else R.drawable.eye
+                            val icon = if(passwordVisible) R.drawable.eye else R.drawable.eye_slash
 
                             Icon(
                                 painter = painterResource(id = icon),
@@ -170,7 +175,30 @@ fun LoginScreen(navHostController: NavHostController){
                                 .signInWithEmailAndPassword(email , password)
                                 .addOnCompleteListener{
                                     if(it.isSuccessful){
-                                        navHostController.navigate(Destinations.HOME)
+                                        //recuperar los datos del usuario
+                                            val db = Firebase.firestore
+                                            db.collection("users")
+                                                .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser!!.uid)
+                                                .get()
+                                                .addOnSuccessListener { result ->
+                                                    if (result.isEmpty) {
+                                                        Log.d(TAG, "No user found with email: $email")
+                                                    } else {
+                                                        for (document in result) {
+                                                            GlobalUser.initialize(document.data)
+                                                            navHostController.navigate(Destinations.HOME)
+                                                        }
+                                                    }
+                                                }
+                                                .addOnFailureListener { exception ->
+                                                    Log.w(TAG, "Error getting documents.", exception)
+                                                }
+
+                                        //guardar los datos delusuario en Globaluser
+
+                                        //GlobalUser.initialize(user) --> pista
+
+
                                     }
                                     else{
                                         displayAlert = true

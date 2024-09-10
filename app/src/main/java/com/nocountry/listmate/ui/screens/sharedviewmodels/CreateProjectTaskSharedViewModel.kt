@@ -49,7 +49,7 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
     fun createProjectAndTasks(ownerId: String, onProjectCreated: () -> Unit) {
         val title = _projectTitle.value
         val participants = _projectParticipants.value
-        val participantsId = participants?.map { it.id }
+        val participantsId = participants?.map { it.uid }
 
         val tasks = _tasks.value
         val tasksId = tasks?.map { it.id }

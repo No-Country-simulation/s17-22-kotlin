@@ -58,12 +58,12 @@ fun CreateProjectScreen(
     val loading by sharedViewModel.loading.observeAsState(false)
     val dummyParticipants = listOf(
         User(
-            id = "user1",
+            uid =  "user1",
             name = "Alice Johnson",
             email = "alice.johnson@example.com"
         ),
         User(
-            id = "user2",
+            uid = "user2",
             name = "Bob Smith",
             email = "bob.smith@example.com"
         )

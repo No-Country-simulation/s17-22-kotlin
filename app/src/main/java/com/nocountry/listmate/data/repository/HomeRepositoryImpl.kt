@@ -51,9 +51,9 @@ class HomeRepositoryImpl(private val firebase: FirebaseFirestore) : HomeReposito
                     firebase.collection("users").document(userId)
                         .get()
                         .addOnSuccessListener { userDocument ->
-                            userDocument.toObject(User::class.java)?.let { user ->
-                                usersMap[user.id] = user
-                            }
+//                            userDocument.toObject(User::class.java)?.let { User ->
+//                                usersMap[User.uid] = User
+//                            }
                         }
                 }
 
@@ -64,7 +64,7 @@ class HomeRepositoryImpl(private val firebase: FirebaseFirestore) : HomeReposito
 
                     val updatedProject = project.copy(
                         tasks = projectTasks?.map { it.id },
-                        participants = projectUsers.map { it.id }
+                        participants = projectUsers.map { it.uid }
                     )
                     updatedProject
                 }
