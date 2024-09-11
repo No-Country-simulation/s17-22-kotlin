@@ -45,8 +45,9 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
                     "projectId" to projectId,
                     "taskName" to task.taskName,
                     "assignedTo" to task.assignedTo,
+                    "assignedToId" to task.assignedToId,
                     "description" to task.description,
-                    "status" to task.status
+                    "status" to task.status,
                 )
                 val docRef = firebase.collection("tasks").document()
                 docRef.set(taskData).await()
@@ -63,7 +64,10 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
             awaitClose()
         }
 
-    override suspend fun addParticipantsIds(projectId: String, participants: List<User>): Flow<List<String>> =
+    override suspend fun addParticipantsIds(
+        projectId: String,
+        participants: List<User>
+    ): Flow<List<String>> =
         callbackFlow {
             val participantsIds = mutableListOf<String>()
 

@@ -57,12 +57,12 @@ import com.nocountry.listmate.ui.theme.ListMateTheme
 fun CreateTaskScreen(
     navHostController: NavHostController,
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
-    sharedViewModel: SharedViewModel
 ) {
 
     var taskTitle by rememberSaveable { mutableStateOf("") }
     var taskDescription by rememberSaveable { mutableStateOf("") }
     val selectedParticipant: MutableState<String> = rememberSaveable { mutableStateOf("") }
+    val selectedParticipantId: MutableState<String> = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(mutableListOf())
     val task by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
@@ -101,7 +101,7 @@ fun CreateTaskScreen(
             )
             Spacer(modifier = Modifier.padding(0.dp, 2.dp))
             Text(text = "Assigned to:", style = MaterialTheme.typography.bodyMedium)
-            DropdownMenu(selectedParticipant, projectParticipants)
+            DropdownMenu(selectedParticipant, selectedParticipantId, projectParticipants)
             Spacer(modifier = Modifier.padding(0.dp, 10.dp))
             Text(text = "Add task description:", style = MaterialTheme.typography.bodyMedium)
             InputTextFieldComponent(
@@ -127,6 +127,7 @@ fun CreateTaskScreen(
                         taskTitle,
                         taskDescription,
                         selectedParticipant,
+                        selectedParticipantId,
                         navHostController,
                         context,
                         task,
@@ -147,7 +148,7 @@ fun CreateTaskScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants: List<User>) {
+fun DropdownMenu(selectedParticipant: MutableState<String>, selectedParticipantId: MutableState<String>, projectParticipants: List<User>) {
 
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -195,7 +196,8 @@ fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants:
                             )
                         },
                         onClick = {
-                            selectedParticipant.value = user.name
+                            selectedParticipant.value = user.name + " " + user.lastName
+                            selectedParticipantId.value = user.uid
                             isExpanded = false
                         },
                     )
@@ -209,13 +211,14 @@ private fun addTaskValidation(
     taskTitle: String,
     taskDescription: String,
     selectedParticipant: MutableState<String>,
+    selectedParticipantId: MutableState<String>,
     navHostController: NavHostController,
     context: Context,
     task: MutableList<Task>,
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
 ) {
     if (taskTitle.isNotBlank() && selectedParticipant.value.isNotBlank()) {
-        val newTask = Task("", "", taskTitle, selectedParticipant.value, taskDescription, "To do")
+        val newTask = Task("", "", taskTitle, selectedParticipant.value, selectedParticipantId.value , taskDescription, "To do")
         task.add(newTask)
         createProjectTaskSharedViewModel.setTasks(task)
         navHostController.navigate(Destinations.CREATE_PROJECT)

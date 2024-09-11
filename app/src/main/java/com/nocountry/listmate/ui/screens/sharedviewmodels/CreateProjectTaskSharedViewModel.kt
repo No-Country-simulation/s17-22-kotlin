@@ -151,11 +151,11 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
 
     fun onAddParticipantToProject(user: User) {
         _projectParticipants.value?.let { currentParticipants ->
-            // Create a new list with the existing participants and the new user
+
             val updatedParticipants = currentParticipants.toMutableList().apply {
                 add(user)
             }
-            // Set the new list to the LiveData
+
             _projectParticipants.value = updatedParticipants
         }
     }
