@@ -78,8 +78,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
             composable(Destinations.CREATE_TASK) {
                 CreateTaskScreen(
                     navHostController = navHostController,
-                    createProjectTaskSharedViewModel = createProjectTaskSharedViewModel,
-                    sharedViewModel = sharedViewModel
+                    createProjectTaskSharedViewModel = createProjectTaskSharedViewModel
                 )
             }
         }
