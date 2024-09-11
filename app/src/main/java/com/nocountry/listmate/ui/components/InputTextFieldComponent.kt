@@ -23,14 +23,16 @@ import com.nocountry.listmate.R
 
 @Composable
 fun InputTextFieldComponent(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
     label: Int? = null,
     leadingIcon: ImageVector?,
     trailingIcon: @Composable () -> Unit,
     keyboardOptions: KeyboardOptions,
+    placeholder: String?,
     supportingText: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
+
 ) {
     TextField(
         value = value,
@@ -62,6 +64,11 @@ fun InputTextFieldComponent(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),
+        placeholder = {
+            if (placeholder != null) {
+                Text(text = placeholder)
+            }
+        }
 
 
     )
@@ -78,6 +85,7 @@ fun InputTextFieldComponentPreview() {
             leadingIcon = Icons.Default.Search,
             trailingIcon = { /*TODO*/ },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            placeholder = R.string.app_name.toString()
         )
     }
 }

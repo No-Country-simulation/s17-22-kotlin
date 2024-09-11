@@ -25,6 +25,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -48,23 +49,23 @@ import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.components.ButtonComponent
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 
 @Composable
 fun CreateTaskScreen(
     navHostController: NavHostController,
-    sharedViewModel: CreateProjectTaskSharedViewModel
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
 ) {
 
     var taskTitle by rememberSaveable { mutableStateOf("") }
     var taskDescription by rememberSaveable { mutableStateOf("") }
     val selectedParticipant: MutableState<String> = rememberSaveable { mutableStateOf("") }
+    val selectedParticipantId: MutableState<String> = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
-    val projectParticipants by sharedViewModel.projectParticipants.observeAsState(
-        emptyList()
-    )
-    val task by sharedViewModel.tasks.observeAsState(mutableListOf())
+    val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(mutableListOf())
+    val task by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
 
     Scaffold(
         topBar = {
@@ -95,11 +96,12 @@ fun CreateTaskScreen(
                     keyboardType = KeyboardType.Text,
                     capitalization = KeyboardCapitalization.Sentences
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = null
             )
             Spacer(modifier = Modifier.padding(0.dp, 2.dp))
             Text(text = "Assigned to:", style = MaterialTheme.typography.bodyMedium)
-            DropdownMenu(selectedParticipant, projectParticipants)
+            DropdownMenu(selectedParticipant, selectedParticipantId, projectParticipants)
             Spacer(modifier = Modifier.padding(0.dp, 10.dp))
             Text(text = "Add task description:", style = MaterialTheme.typography.bodyMedium)
             InputTextFieldComponent(
@@ -114,7 +116,8 @@ fun CreateTaskScreen(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(200.dp),
+                placeholder = null
             )
             Spacer(modifier = Modifier.weight(1f))
             ButtonComponent(
@@ -124,10 +127,11 @@ fun CreateTaskScreen(
                         taskTitle,
                         taskDescription,
                         selectedParticipant,
+                        selectedParticipantId,
                         navHostController,
                         context,
                         task,
-                        sharedViewModel
+                        createProjectTaskSharedViewModel,
                     )
                 },
                 backgroundColor = MaterialTheme.colorScheme.inversePrimary,
@@ -144,7 +148,7 @@ fun CreateTaskScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants: List<User>) {
+fun DropdownMenu(selectedParticipant: MutableState<String>, selectedParticipantId: MutableState<String>, projectParticipants: List<User>) {
 
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -182,17 +186,18 @@ fun DropdownMenu(selectedParticipant: MutableState<String>, projectParticipants:
                 onDismissRequest = { isExpanded = false },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                projectParticipants.forEachIndexed { _, text ->
+                projectParticipants.forEachIndexed { _, user ->
                     DropdownMenuItem(
                         modifier = Modifier.fillMaxWidth(),
                         text = {
                             Text(
-                                text = text.name, style = MaterialTheme.typography.bodyMedium,
+                                text = "${user.name} ${user.lastName}", style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
                         },
                         onClick = {
-                            selectedParticipant.value = text.name
+                            selectedParticipant.value = user.name + " " + user.lastName
+                            selectedParticipantId.value = user.uid
                             isExpanded = false
                         },
                     )
@@ -206,16 +211,18 @@ private fun addTaskValidation(
     taskTitle: String,
     taskDescription: String,
     selectedParticipant: MutableState<String>,
+    selectedParticipantId: MutableState<String>,
     navHostController: NavHostController,
     context: Context,
     task: MutableList<Task>,
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
 ) {
     if (taskTitle.isNotBlank() && selectedParticipant.value.isNotBlank()) {
-        val newTask = Task("", "", taskTitle, selectedParticipant.value, taskDescription, "To do")
+        val newTask = Task("", "", taskTitle, selectedParticipant.value, selectedParticipantId.value , taskDescription, "To do")
         task.add(newTask)
         createProjectTaskSharedViewModel.setTasks(task)
         navHostController.navigate(Destinations.CREATE_PROJECT)
+        createProjectTaskSharedViewModel.onSearchTextChange("")
     } else {
         Toast.makeText(
             context,

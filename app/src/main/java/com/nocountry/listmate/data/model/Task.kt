@@ -5,6 +5,7 @@ data class Task(
     val projectId: String = "",
     val taskName: String = "",
     val assignedTo: String = "",
+    val assignedToId: String = "",
     val description: String = "",
     val status: String = "",
 )

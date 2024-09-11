@@ -8,4 +8,5 @@ object Destinations {
     const val CREATE_TASK = "CreateTask"
     const val LOGIN = "Login"
     const val SIGNUP = "Signup"
+    const val USER_ID = "userId"
 }
