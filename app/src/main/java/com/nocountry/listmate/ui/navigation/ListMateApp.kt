@@ -7,11 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.google.firebase.firestore.FirebaseFirestore
 import com.nocountry.listmate.data.repository.ProjectRepositoryImpl
 import com.nocountry.listmate.domain.ProjectRepository
@@ -47,7 +45,10 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 SignUpScreen(navHostController = navHostController)
             }
             composable(Destinations.LOGIN) {
-                LoginScreen(navHostController = navHostController, sharedViewModel = sharedViewModel)
+                LoginScreen(
+                    navHostController = navHostController,
+                    sharedViewModel = sharedViewModel
+                )
             }
             composable(
                 Destinations.HOME
@@ -63,7 +64,10 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 HomeScreen(navHostController = navHostController, sharedViewModel = sharedViewModel)
             }
             composable(Destinations.MY_TASKS) {
-                MyTasksScreen(navHostController = navHostController)
+                MyTasksScreen(
+                    navHostController = navHostController,
+                    sharedViewModel = sharedViewModel
+                )
             }
             composable(Destinations.PROFILE) {
                 ProfileScreen(navHostController = navHostController)
@@ -73,7 +77,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                     navHostController = navHostController,
                     createProjectTaskSharedViewModel = createProjectTaskSharedViewModel,
                     sharedViewModel = sharedViewModel
-                    )
+                )
             }
             composable(Destinations.CREATE_TASK) {
                 CreateTaskScreen(
