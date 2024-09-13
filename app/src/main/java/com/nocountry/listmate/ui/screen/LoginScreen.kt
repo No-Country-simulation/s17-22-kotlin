@@ -52,6 +52,7 @@ import com.google.firebase.firestore.firestore
 import com.nocountry.listmate.R
 import com.nocountry.listmate.componentes.TopBar
 import com.nocountry.listmate.singleton.GlobalUser
+import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.navigation.Destinations
 
 @Composable
@@ -65,7 +66,6 @@ fun LogInPreview(){
 fun LoginScreen(navHostController: NavHostController){
     var email by remember { mutableStateOf("belletommasi@gmail.com")}
     var password by remember { mutableStateOf("belle111") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var displayAlert by remember { mutableStateOf(false) }
 
     Column(
@@ -91,73 +91,17 @@ fun LoginScreen(navHostController: NavHostController){
 
 
        ) {
-            TextField (
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,  // Línea cuando el campo está enfocado
-                    unfocusedIndicatorColor = Color.Transparent // Línea cuando el campo no está enfocado
-                ),
-
-                modifier = Modifier
-                    .fillMaxWidth(),
-                value = email,
-                onValueChange ={email = it
-                },
-                shape = RoundedCornerShape(15.dp),
-                label =  { Text(text = "Email" ) },
-
-
-                maxLines = 1,
-                singleLine = true
-            )
+           Input(label = "Email", value = email){ email = it }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextField (
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,  // Línea cuando el campo está enfocado
-                    unfocusedIndicatorColor = Color.Transparent // Línea cuando el campo no está enfocado
-                ),
-
-                modifier = Modifier
-                    .fillMaxWidth(),
-                value = password,
-                onValueChange ={password = it},
-                shape = RoundedCornerShape(15.dp),
-                label =  { Text(text = "Password" ) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password
-                ),
-                maxLines = 1,
-                singleLine = true,
-                visualTransformation =
-                if (passwordVisible)
-                    VisualTransformation.None
-                else
-                    PasswordVisualTransformation(),
-                trailingIcon = {
-                    if (password.isNotBlank()) {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            val icon = if(passwordVisible) R.drawable.eye else R.drawable.eye_slash
-
-                            Icon(
-                                painter = painterResource(id = icon),
-                                modifier = Modifier.width(15.dp),
-                                contentDescription = ""
-                            )
-                        }
-                    }
-                }
-            )
-
-
-
+           Input(label = "Password", value = password, isPassword = true){ password = it }
 
            Spacer(modifier = Modifier.height(25.dp))
 
             HyperlinkText(text = "¿Forgot password?", modifier = Modifier.align(alignment = Alignment.Start)) {  }
 
             Spacer(modifier = Modifier.height(25.dp))
-
 
             Button(
                 modifier = Modifier

@@ -39,22 +39,22 @@ class HomeRepositoryImpl(private val firebase: FirebaseFirestore) : HomeReposito
                 tasksToFetch.forEach { taskId ->
                     firebase.collection("tasks").document(taskId)
                         .get()
-                        .addOnSuccessListener { taskDocument ->
-                            taskDocument.toObject(Task::class.java)?.let { task ->
-                                tasksMap[task.id] = task
-                            }
-                        }
+//                        .addOnSuccessListener { taskDocument ->
+//                            taskDocument.toObject(Task::class.java)?.let { task ->
+//                                tasksMap[task.id] = task
+//                            }
+//                        }
                 }
 
                 // Getting users
                 usersToFetch.forEach { userId ->
                     firebase.collection("users").document(userId)
                         .get()
-                        .addOnSuccessListener { userDocument ->
+//                        .addOnSuccessListener { userDocument ->
 //                            userDocument.toObject(User::class.java)?.let { User ->
 //                                usersMap[User.uid] = User
 //                            }
-                        }
+//                        }
                 }
 
                 // Update projects with tasks and users

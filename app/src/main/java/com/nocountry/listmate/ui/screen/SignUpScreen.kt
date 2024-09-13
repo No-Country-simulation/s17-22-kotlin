@@ -80,10 +80,10 @@ fun SignUpScreen(
             Input(label = "Email", value = username){
                 username = it
             }
-            Input(label = "Password", value =password){
+            Input(label = "Password", value =password, isPassword = true){
                 password = it
             }
-            Input(label = "Repeat Passsword", value = passwordRepeat){
+            Input(label = "Repeat Passsword", value = passwordRepeat, isPassword = true){
                 passwordRepeat = it
             }
             Spacer(modifier = Modifier.height(25.dp))
