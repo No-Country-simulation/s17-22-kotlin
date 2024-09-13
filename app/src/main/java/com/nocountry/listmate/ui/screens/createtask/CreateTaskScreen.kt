@@ -218,7 +218,7 @@ private fun addTaskValidation(
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
 ) {
     if (taskTitle.isNotBlank() && selectedParticipant.value.isNotBlank()) {
-        val newTask = Task("", "", taskTitle, selectedParticipant.value, selectedParticipantId.value , taskDescription, "To do")
+        val newTask = Task("", "", taskTitle, selectedParticipant.value, selectedParticipantId.value , taskDescription, false)
         task.add(newTask)
         createProjectTaskSharedViewModel.setTasks(task)
         navHostController.navigate(Destinations.CREATE_PROJECT)
