@@ -6,6 +6,9 @@
     <string name="my_tasks_bottom_nav_bar">My Tasks</string>
     <string name="home_bottom_nav_bar">Home</string>
 
+    <!-- Top Bar -->
+    <string name="my_projects_top_bar">My Projects</string>
+
     <!-- FAB BUTTON -->
     <string name="fab_button">Create</string>
 

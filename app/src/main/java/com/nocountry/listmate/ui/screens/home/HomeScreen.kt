@@ -1,5 +1,7 @@
 package com.nocountry.listmate.ui.screens.home
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
@@ -34,22 +34,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
 import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
-import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun HomeScreen(
@@ -123,7 +119,10 @@ fun HomeScreen(
                         user.value?.let { user ->
                             ProjectsOverview(user = user, uiState.projects)
                         }
-                        ProjectsList(projects = uiState.projects)
+                        ProjectsList(
+                            projects = uiState.projects,
+                            navHostController = navHostController
+                        )
 
                     }
 
@@ -172,7 +171,8 @@ fun ProjectsOverview(user: User, projects: List<Project>) {
 
 @Composable
 fun ProjectsList(
-    projects: List<Project>
+    projects: List<Project>,
+    navHostController: NavHostController
 ) {
     val colorsProjects =
         listOf(
@@ -183,17 +183,35 @@ fun ProjectsList(
     LazyColumn {
         itemsIndexed(projects) { index, project ->
             val backgroundColor = colorsProjects[index % colorsProjects.size]
-            ProjectSection(project = project, backgroundColor)
+            ProjectSection(
+                project = project,
+                backgroundColor,
+                onClick = { projectId ->
+                    Log.d("ProjectsList", "Navigating with Project ID: $projectId")
+                    if (projectId.isNotEmpty()) {
+                        navHostController.navigate("${Destinations.PROJECT_DETAIL}/${projectId}")
+                    } else {
+                        Log.e("NavigationError", "Project ID is empty or null")
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun ProjectSection(project: Project, backgroundColor: Color) {
+fun ProjectSection(project: Project, backgroundColor: Color, onClick: (String) -> Unit) {
+    val projectId = project.id
+    Log.d("ProjectSection", "Project ID in Section: $projectId") // Verifica el ID aquí
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable {
+                Log.d("ProjectSection", "Clicked Project ID: $projectId") // Verifica el ID al hacer clic
+                onClick(projectId)
+            },
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Box(
