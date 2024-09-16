@@ -10,6 +10,7 @@
     <string name="fab_button">Create</string>
 
     <string name="create_project">Create Project</string>
+    <string name="edit_project">Edit Project</string>
     <string name="create_task">Create Task</string>
     <string name="project_name_input_label">Project name</string>
     <string name="task_name_input_label">Task name</string>

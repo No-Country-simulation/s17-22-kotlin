@@ -123,7 +123,7 @@ fun HomeScreen(
                         user.value?.let { user ->
                             ProjectsOverview(user = user, uiState.projects)
                         }
-                        ProjectsList(projects = uiState.projects)
+                        ProjectsList(projects = uiState.projects, navHostController)
 
                     }
 
@@ -172,7 +172,8 @@ fun ProjectsOverview(user: User, projects: List<Project>) {
 
 @Composable
 fun ProjectsList(
-    projects: List<Project>
+    projects: List<Project>,
+    navHostController: NavHostController
 ) {
     val colorsProjects =
         listOf(
@@ -183,13 +184,13 @@ fun ProjectsList(
     LazyColumn {
         itemsIndexed(projects) { index, project ->
             val backgroundColor = colorsProjects[index % colorsProjects.size]
-            ProjectSection(project = project, backgroundColor)
+            ProjectSection(project = project, backgroundColor, navHostController)
         }
     }
 }
 
 @Composable
-fun ProjectSection(project: Project, backgroundColor: Color) {
+fun ProjectSection(project: Project, backgroundColor: Color, navHostController: NavHostController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -248,7 +249,11 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
 
             }
             SmallFloatingActionButton(
-                onClick = { /*TODO*/ }, modifier = Modifier
+                onClick = {
+                    if (project.id.isNotBlank()) {
+                        navHostController.navigate("${Destinations.EDIT_DELETE_PROJECT}/${project.id}")
+                    }
+                }, modifier = Modifier
                     .align(Alignment.BottomEnd)
             ) {
                 Icon(

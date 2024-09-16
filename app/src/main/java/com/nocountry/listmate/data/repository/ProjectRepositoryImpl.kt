@@ -28,15 +28,26 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
             .add(project)
             .addOnSuccessListener { docRef ->
                 val projectId = docRef.id
-                val createProject =
-                    participants?.let { Project(projectId, projectName, "", it, tasks, ownerId) }
-                if (createProject != null) {
-                    trySend(createProject).isSuccess
-                }
+                firebase.collection("projects").document(projectId)
+                    .update("id", projectId)
+                    .addOnSuccessListener {
+                        val createProject = Project(
+                            projectId,
+                            projectName,
+                            "",
+                            participants ?: emptyList(),
+                            tasks,
+                            ownerId
+                        )
+                        trySend(createProject).isSuccess
+                    }
+                    .addOnFailureListener { close(it) }
             }
             .addOnFailureListener { close(it) }
+
         awaitClose()
     }
+
 
     override suspend fun createTasks(projectId: String, tasks: List<Task>): Flow<List<Task>> =
         callbackFlow {

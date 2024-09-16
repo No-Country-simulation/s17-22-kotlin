@@ -9,4 +9,6 @@ object Destinations {
     const val LOGIN = "Login"
     const val SIGNUP = "Signup"
     const val USER_ID = "userId"
+    const val EDIT_DELETE_PROJECT = "EditDeleteProject"
+    const val PROJECT_ID = "ProjectId"
 }

@@ -7,14 +7,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.firebase.firestore.FirebaseFirestore
 import com.nocountry.listmate.data.repository.ProjectRepositoryImpl
 import com.nocountry.listmate.domain.ProjectRepository
 import com.nocountry.listmate.ui.screens.createproject.CreateProjectScreen
 import com.nocountry.listmate.ui.screens.createtask.CreateTaskScreen
+import com.nocountry.listmate.ui.screens.editdeteleproject.EditDeleteProjectScreen
 import com.nocountry.listmate.ui.screens.home.HomeScreen
 import com.nocountry.listmate.ui.screens.login.LoginScreen
 import com.nocountry.listmate.ui.screens.my_tasks.MyTasksScreen
@@ -84,6 +87,16 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                     navHostController = navHostController,
                     createProjectTaskSharedViewModel = createProjectTaskSharedViewModel
                 )
+            }
+            composable(
+                route = "${Destinations.EDIT_DELETE_PROJECT}/{${Destinations.PROJECT_ID}}",
+                arguments = listOf(navArgument(Destinations.PROJECT_ID) {
+                    type = NavType.StringType
+                })
+            ) { backStackEntry ->
+                val projectId =
+                    requireNotNull(backStackEntry.arguments?.getString(Destinations.PROJECT_ID))
+                EditDeleteProjectScreen(navHostController = navHostController, projectId = projectId)
             }
         }
     }
