@@ -1,5 +1,6 @@
 package com.nocountry.listmate.data.repository
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.nocountry.listmate.data.model.Project
 import com.nocountry.listmate.data.model.Task
@@ -121,4 +122,24 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
         awaitClose { snapshotListener.remove() }
     }
 
+    override suspend fun deleteProject(projectId: String) {
+        try {
+            val tasksSnapshot = firebase.collection("tasks")
+                .whereEqualTo("projectId", projectId)
+                .get()
+                .await()
+
+            for (task in tasksSnapshot.documents) {
+                firebase.collection("tasks").document(task.id).delete().await()
+            }
+
+            firebase.collection("projects")
+                .document(projectId)
+                .delete()
+                .await()
+        } catch (e: Exception) {
+            Log.e("ProjectRepositoryImpl", "Error deleting project: ${e.message}", e)
+            throw e
+        }
+    }
 }

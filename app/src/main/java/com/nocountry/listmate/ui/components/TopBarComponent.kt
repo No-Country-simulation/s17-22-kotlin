@@ -50,7 +50,7 @@ fun TopBarComponent(
             if (actions != null) {
                 actions()
             } else {
-                Spacer(modifier = Modifier.width(64.dp)) // Adjust width to match possible action space
+                Spacer(modifier = Modifier.width(64.dp))
             }
         }
     )

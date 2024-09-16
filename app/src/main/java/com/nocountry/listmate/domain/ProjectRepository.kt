@@ -18,4 +18,6 @@ interface ProjectRepository {
     suspend fun addParticipantsIds(projectId: String, participants: List<User>): Flow<List<String>>
 
     suspend fun fetchUsers(): Flow<List<User>>
+
+    suspend fun deleteProject(projectId: String)
 }
