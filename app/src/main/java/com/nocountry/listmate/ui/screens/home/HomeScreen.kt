@@ -189,7 +189,7 @@ fun ProjectsList(
                 onClick = { projectId ->
                     Log.d("ProjectsList", "Navigating with Project ID: $projectId")
                     if (projectId.isNotEmpty()) {
-                        navHostController.navigate("${Destinations.PROJECT_DETAIL}/${projectId}")
+                        navHostController.navigate("${Destinations.PROJECT_DETAIL}/$projectId")
                     } else {
                         Log.e("NavigationError", "Project ID is empty or null")
                     }
@@ -202,14 +202,17 @@ fun ProjectsList(
 @Composable
 fun ProjectSection(project: Project, backgroundColor: Color, onClick: (String) -> Unit) {
     val projectId = project.id
-    Log.d("ProjectSection", "Project ID in Section: $projectId") // Verifica el ID aquí
+    Log.d("ProjectSection", "Project ID in Section: $projectId")
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable {
-                Log.d("ProjectSection", "Clicked Project ID: $projectId") // Verifica el ID al hacer clic
+                Log.d(
+                    "ProjectSection",
+                    "Clicked Project ID: $projectId"
+                )
                 onClick(projectId)
             },
         colors = CardDefaults.cardColors(containerColor = backgroundColor)

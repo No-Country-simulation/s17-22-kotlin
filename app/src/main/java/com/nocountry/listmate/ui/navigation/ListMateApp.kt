@@ -54,17 +54,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                     sharedViewModel = sharedViewModel
                 )
             }
-            composable(
-                Destinations.HOME
-//                route = "${Destinations.HOME}/{${Destinations.USER_ID}}",
-//                arguments = listOf(
-//                    navArgument(Destinations.USER_ID) { type = NavType.StringType }
-
-            ) {
-//            backStackEntry ->
-//                val userId =
-//                    requireNotNull(backStackEntry.arguments?.getString(Destinations.USER_ID))
-
+            composable(Destinations.HOME) {
                 HomeScreen(navHostController = navHostController, sharedViewModel = sharedViewModel)
             }
             composable(Destinations.MY_TASKS) {
@@ -83,13 +73,16 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 })
             ) { backStackEntry ->
                 val projectId = backStackEntry.arguments?.getString(Destinations.PROJECT_ID)
-                Log.d("NavHost", "Project ID in NavHost: $projectId") // Verifica el ID en el NavHost
+                Log.d("NavHost", "Project ID in NavHost: $projectId")
                 if (projectId != null) {
-                    ProjectDetailScreen(projectId = projectId)
+                    ProjectDetailScreen(
+                        navHostController = navHostController,
+                        projectId = projectId,
+                        sharedViewModel = sharedViewModel
+                    )
                 } else {
                     Log.e("NavigationError", "Project ID is null in backStackEntry")
                 }
-
             }
             composable(Destinations.CREATE_PROJECT) {
                 CreateProjectScreen(

@@ -4,12 +4,12 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,46 +17,84 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.google.firebase.firestore.FirebaseFirestore
+import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Task
+import com.nocountry.listmate.data.repository.ProjectDetailRepositoryImpl
+import com.nocountry.listmate.domain.ProjectDetailRepository
+import com.nocountry.listmate.ui.components.TopBarComponent
+import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.home.HomeScreenViewModel
-import com.nocountry.listmate.ui.screens.my_tasks.MyTasksViewModel
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectDetailScreen(
+    navHostController: NavHostController,
     projectId: String,
-    homeScreenViewModel: HomeScreenViewModel = viewModel(),
-    myTasksViewModel: MyTasksViewModel = viewModel()
+    sharedViewModel: SharedViewModel,
 ) {
-    val uiState by homeScreenViewModel.uiState.collectAsState()
-    val myTasks by myTasksViewModel.myTasks.observeAsState(emptyList())
 
+    val userId by sharedViewModel.userId.collectAsState()
+    val homeScreenViewModel: HomeScreenViewModel = viewModel(
+        factory = HomeScreenViewModel.provideFactory(userId)
+    )
+    val uiState by homeScreenViewModel.uiState.collectAsState()
     val selectedProject = uiState.projects.find { it.id == projectId }
-    val projectDisplayName = selectedProject?.name ?: "Proyecto desconocido"
+    val projectDisplayName = selectedProject?.name ?: "Unknown project"
+
+    val projectDetailRepository: ProjectDetailRepository =
+        ProjectDetailRepositoryImpl(FirebaseFirestore.getInstance())
+
+    val projectDetailViewModel: ProjectDetailViewModel = viewModel(
+        factory = ProjectDetailViewModelFactory(
+            projectDetailRepository = projectDetailRepository,
+            projectId = projectId
+        )
+    )
+    val projectTask by projectDetailViewModel.projectsTasks.observeAsState(emptyList())
+
+    LaunchedEffect(projectId) {
+        projectId.let {
+            projectDetailViewModel.getProjectTask(it)
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = projectDisplayName) })
+            TopBarComponent(title = R.string.my_project_top_bar,
+                navigationIcon = {
+                    IconButton(onClick = { navHostController.navigate(Destinations.HOME) }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back),
+                            contentDescription = "Arrow back"
+                        )
+                    }
+                }
+            )
         }
     ) { padding ->
         LazyColumn(
@@ -68,23 +106,40 @@ fun ProjectDetailScreen(
         ) {
             selectedProject?.let { project ->
                 item {
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         Text(
-                            text = project.description,
-                            style = MaterialTheme.typography.bodyMedium
+                            text = projectDisplayName,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
                         Text(
-                            text = "Participants: ${project.participants}",
-                            style = MaterialTheme.typography.bodyLarge
+                            text = project.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textAlign = TextAlign.Justify
+                        )
+                        Text(
+                            text = "Participants: ${project.participants.size}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "Task : ${projectTask.size}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
-                items(project.tasks.orEmpty()) { taskId ->
-                    val task = myTasks.find { it.id == taskId }
-
-                    task?.let {
-                        AnimatedTaskItem(task = it, modifier = Modifier.padding(8.dp))
-                    }
+                items(projectTask) { task ->
+                    AnimatedTaskItem(task = task, modifier = Modifier.padding(8.dp))
                 }
             }
         }
@@ -96,15 +151,16 @@ fun AnimatedTaskItem(task: Task, modifier: Modifier = Modifier) {
 
     var expanded by rememberSaveable { mutableStateOf(false) }
     val backgroundColor by animateColorAsState(
-        targetValue = if (expanded) MaterialTheme.colorScheme.tertiaryContainer
-        else MaterialTheme.colorScheme.primaryContainer, label = ""
+        targetValue = if (expanded) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceVariant, label = ""
     )
 
     Card(
         modifier = modifier
+            .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
-            .background(backgroundColor)
-            .clickable { expanded = !expanded }
+            .clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Column(
             modifier = Modifier
@@ -116,8 +172,12 @@ fun AnimatedTaskItem(task: Task, modifier: Modifier = Modifier) {
                 )
                 .padding(16.dp)
         ) {
-            Row {
-                Text(text = task.taskName)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = task.taskName, color = MaterialTheme.colorScheme.onSurface)
                 TaskItemButton(expanded = expanded, onClick = { expanded = !expanded })
             }
             if (expanded) {
@@ -142,6 +202,6 @@ fun TaskItemButton(expanded: Boolean, onClick: () -> Unit, modifier: Modifier = 
 @Composable
 fun ProjectDetailScreenPreview() {
     ListMateTheme {
-        ProjectDetailScreen("", viewModel(), viewModel())
+        AnimatedTaskItem(task = Task("", "", "Test", "Nikoll", "", "Description Test", true))
     }
 }
