@@ -42,6 +42,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.nocountry.listmate.R
+import com.nocountry.listmate.data.UsuarioManager
 import com.nocountry.listmate.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.navigation.Destinations
@@ -110,21 +111,13 @@ fun  ProfileScreen(navHostController: NavHostController){
 
         Button(
             onClick = {
-//                      if (name.isNotEmpty() && lastname.isNotEmpty()){
-//                          GlobalUser
-//                        val newPerson = hashMapOf(
-//                            "name" to name,
-//                            "lastname" to lastname
-//                        )
-//                        db.collection("users")
-//                            .add(newPerson)
-//                            .addOnSuccessListener {
-//                                name = ""
-//                                lastname = ""
-//
-//                            }
-//
-//                      }
+                      if (name.isNotEmpty() && lastname.isNotEmpty()){
+                          GlobalUser.name = name
+                          GlobalUser.lastName = lastname
+                          val usuario = GlobalUser.getUserObject()
+
+                          UsuarioManager().actualizarNombreApellidoUsuario(usuario)
+                      }
             },
 
             modifier = Modifier

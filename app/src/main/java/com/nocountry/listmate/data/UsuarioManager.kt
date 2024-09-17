@@ -1,5 +1,6 @@
 package com.nocountry.listmate.data
 
+import com.google.firebase.firestore.SetOptions
 import com.nocountry.listmate.data.model.User
 
 //referencia https://firebase.google.com/docs/firestore/quickstart?hl=es-419#android_1
@@ -9,6 +10,21 @@ class UsuarioManager {
             .addOnSuccessListener { documentReference ->
             }
             .addOnFailureListener { e ->
+            }
+    }
+    fun actualizarNombreApellidoUsuario(usuario: User) {
+        val userUpdates = hashMapOf<String, Any>(
+            "name" to usuario.name,
+            "lastName" to usuario.lastName
+        )
+
+        FirestoreConnection.usuarioDB.document(usuario.uid)
+            .set(userUpdates, SetOptions.merge())
+            .addOnSuccessListener {
+                // Manejar el éxito de la actualización
+            }
+            .addOnFailureListener { e ->
+                // Manejar el error
             }
     }
 }
