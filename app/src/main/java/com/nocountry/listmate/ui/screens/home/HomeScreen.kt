@@ -1,5 +1,7 @@
 package com.nocountry.listmate.ui.screens.home
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -124,7 +126,10 @@ fun HomeScreen(
                         user.value?.let { user ->
                             ProjectsOverview(user = user, uiState.projects)
                         }
-                        ProjectsList(projects = uiState.projects, navHostController)
+                        ProjectsList(
+                            projects = uiState.projects,
+                            navHostController = navHostController
+                        )
 
                     }
 
@@ -185,17 +190,38 @@ fun ProjectsList(
     LazyColumn {
         itemsIndexed(projects) { index, project ->
             val backgroundColor = colorsProjects[index % colorsProjects.size]
-            ProjectSection(project = project, backgroundColor, navHostController)
+            ProjectSection(
+                project = project,
+                backgroundColor,
+                onClick = { projectId ->
+                    Log.d("ProjectsList", "Navigating with Project ID: $projectId")
+                    if (projectId.isNotEmpty()) {
+                        navHostController.navigate("${Destinations.PROJECT_DETAIL}/$projectId")
+                    } else {
+                        Log.e("NavigationError", "Project ID is empty or null")
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun ProjectSection(project: Project, backgroundColor: Color, navHostController: NavHostController) {
+fun ProjectSection(project: Project, backgroundColor: Color, onClick: (String) -> Unit) {
+    val projectId = project.id
+    Log.d("ProjectSection", "Project ID in Section: $projectId")
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable {
+                Log.d(
+                    "ProjectSection",
+                    "Clicked Project ID: $projectId"
+                )
+                onClick(projectId)
+            },
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Box(
