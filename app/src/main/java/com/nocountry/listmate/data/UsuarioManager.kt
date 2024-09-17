@@ -12,13 +12,13 @@ class UsuarioManager {
             .addOnFailureListener { e ->
             }
     }
-    fun actualizarNombreApellidoUsuario(usuario: User) {
+    fun actualizarNombreApellidoUsuario(key: String, usuario: User) {
         val userUpdates = hashMapOf<String, Any>(
             "name" to usuario.name,
             "lastName" to usuario.lastName
         )
 
-        FirestoreConnection.usuarioDB.document(usuario.uid)
+        FirestoreConnection.usuarioDB.document(key)
             .set(userUpdates, SetOptions.merge())
             .addOnSuccessListener {
                 // Manejar el éxito de la actualización

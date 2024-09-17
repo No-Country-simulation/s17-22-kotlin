@@ -58,8 +58,8 @@ fun ProfileScreenPreview(){
 @Composable
 fun  ProfileScreen(navHostController: NavHostController){
    // val db = FirebaseFirestore.getInstance()
-    var name by remember { mutableStateOf("") }
-    var lastname by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(GlobalUser.name) }
+    var lastname by remember { mutableStateOf(GlobalUser.lastName) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -116,7 +116,7 @@ fun  ProfileScreen(navHostController: NavHostController){
                           GlobalUser.lastName = lastname
                           val usuario = GlobalUser.getUserObject()
 
-                          UsuarioManager().actualizarNombreApellidoUsuario(usuario)
+                          UsuarioManager().actualizarNombreApellidoUsuario(GlobalUser.userKey, usuario)
                       }
             },
 

@@ -15,16 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,22 +29,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
-import com.nocountry.listmate.R
 import com.nocountry.listmate.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.components.TopBar
@@ -66,8 +54,8 @@ import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 
 @Composable
 fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedViewModel) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("belletommasi@gmail.com") }
+    var password by remember { mutableStateOf("belle111") }
     var passwordVisible by rememberSaveable { mutableStateOf(true) }
     var displayAlert by remember { mutableStateOf(false) }
 
@@ -122,7 +110,7 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                                                 Log.d(TAG, "No user found with email: $email")
                                             } else {
                                                 for (document in result) {
-                                                    GlobalUser.initialize(document.data)
+                                                    GlobalUser.initialize(document)
                                                     navHostController.navigate(Destinations.HOME)
                                                 }
                                             }

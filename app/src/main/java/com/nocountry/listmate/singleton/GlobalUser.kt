@@ -1,5 +1,6 @@
 package com.nocountry.listmate.singleton
 
+import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.nocountry.listmate.data.model.User
 
 class GlobalUser {
@@ -8,11 +9,13 @@ class GlobalUser {
         var name: String = ""
         var lastName: String = ""
         var email: String = ""
-        fun initialize(user: MutableMap<String, Any>){
-            uid = user["uid"].toString()
-            name = user["name"].toString()
-            lastName = user["lastName"].toString()
-            email = user["email"].toString()
+        var userKey: String = ""
+        fun initialize(user: QueryDocumentSnapshot){
+            uid = user.data["uid"].toString()
+            name = user.data["name"].toString()
+            lastName = user.data["lastName"].toString()
+            email = user.data["email"].toString()
+            userKey = user.id
         }
         fun getUserObject(): User{
             return User(uid = uid,
