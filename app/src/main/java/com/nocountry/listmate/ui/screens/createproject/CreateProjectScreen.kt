@@ -2,6 +2,7 @@ package com.nocountry.listmate.ui.screens.createproject
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,12 +18,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -46,28 +51,23 @@ import com.nocountry.listmate.ui.components.TaskItem
 import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun CreateProjectScreen(
     navHostController: NavHostController,
-    sharedViewModel: CreateProjectTaskSharedViewModel
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
+    sharedViewModel: SharedViewModel
 ) {
-    val projectTitle by sharedViewModel.projectTitle.observeAsState("")
-    val tasks by sharedViewModel.tasks.observeAsState(mutableListOf())
-    val loading by sharedViewModel.loading.observeAsState(false)
-    val dummyParticipants = listOf(
-        User(
-            uid =  "user1",
-            name = "Alice Johnson",
-            email = "alice.johnson@example.com"
-        ),
-        User(
-            uid = "user2",
-            name = "Bob Smith",
-            email = "bob.smith@example.com"
-        )
-    )
+    val projectTitle by createProjectTaskSharedViewModel.projectTitle.observeAsState("")
+    val tasks by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
+    val loading by createProjectTaskSharedViewModel.loading.observeAsState(false)
+    val searchText by createProjectTaskSharedViewModel.searchText.collectAsState()
+    val users by createProjectTaskSharedViewModel.users.collectAsState()
+    val isSearching by createProjectTaskSharedViewModel.isSearching.collectAsState()
+    val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(mutableListOf())
+    val userId by sharedViewModel.userId.collectAsState()
 
     val context = LocalContext.current
 
@@ -93,7 +93,7 @@ fun CreateProjectScreen(
             item {
                 InputTextFieldComponent(
                     value = projectTitle,
-                    onValueChange = { sharedViewModel.setProjectTitle(it) },
+                    onValueChange = { createProjectTaskSharedViewModel.setProjectTitle(it) },
                     label = R.string.project_name_input_label,
                     leadingIcon = null,
                     trailingIcon = { },
@@ -101,22 +101,47 @@ fun CreateProjectScreen(
                         keyboardType = KeyboardType.Text,
                         capitalization = KeyboardCapitalization.Sentences
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = null
                 )
             }
             item {
-                InputTextFieldComponent(
-                    value = "",
-                    onValueChange = {},
-                    label = R.string.find_participants_label,
-                    leadingIcon = Icons.Default.Search,
-                    trailingIcon = { /*TODO*/ },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        capitalization = KeyboardCapitalization.Sentences
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    InputTextFieldComponent(
+                        value = searchText,
+                        onValueChange = createProjectTaskSharedViewModel::onSearchTextChange,
+                        label = R.string.find_participants_label,
+                        leadingIcon = Icons.Default.Search,
+                        trailingIcon = {},
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            capitalization = KeyboardCapitalization.Sentences
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = null
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    if (isSearching) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
+                    } else if (searchText.length >= 2) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            users.forEach { participant ->
+                                Text(
+                                    text = "${participant.name} ${participant.lastName}",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp)
+                                        .clickable {
+                                            createProjectTaskSharedViewModel.onAddParticipantToProject(participant)
+                                            createProjectTaskSharedViewModel.onSearchTextChange("")
+                                        }
+                                )
+                            }
+                        }
+                    }
+                }
             }
             item {
                 FlowRow(
@@ -124,8 +149,8 @@ fun CreateProjectScreen(
                     mainAxisSpacing = 8.dp,
                     crossAxisSpacing = 8.dp
                 ) {
-                    dummyParticipants.forEach { participant ->
-                        ParticipantSpotComponent(name = participant.name)
+                    projectParticipants.forEach { participant ->
+                        ParticipantSpotComponent(name = participant.name + " " + participant.lastName)
                     }
                 }
             }
@@ -135,8 +160,8 @@ fun CreateProjectScreen(
                     onClick = {
                         if (projectTitle.isNotBlank()) {
                             onAddTaskClick(
-                                sharedViewModel,
-                                dummyParticipants,
+                                createProjectTaskSharedViewModel,
+                                projectParticipants,
                                 navHostController
                             )
                         } else {
@@ -184,8 +209,8 @@ fun CreateProjectScreen(
                         if (projectTitle.isNotBlank()) {
                             onCreateProjectClick(
                                 navHostController,
-                                sharedViewModel,
-                                "123Test"
+                                createProjectTaskSharedViewModel,
+                                userId
                             )
 
 
@@ -232,10 +257,10 @@ fun CreateProjectScreen(
 
 private fun onAddTaskClick(
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
-    dummyParticipants: List<User>,
+    projectParticipants: List<User>,
     navHostController: NavHostController
 ) {
-    createProjectTaskSharedViewModel.setProjectParticipants(dummyParticipants)
+    createProjectTaskSharedViewModel.setProjectParticipants(projectParticipants)
     navHostController.navigate(Destinations.CREATE_TASK)
 }
 

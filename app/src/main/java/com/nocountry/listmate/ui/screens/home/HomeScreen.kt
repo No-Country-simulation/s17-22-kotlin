@@ -25,11 +25,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -40,21 +42,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
 import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun HomeScreen(
-    homeScreenViewModel: HomeScreenViewModel = viewModel(factory = HomeScreenViewModel.provideFactory()),
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    sharedViewModel: SharedViewModel
 ) {
 
+    val userId by sharedViewModel.userId.collectAsState()
+
+    val homeScreenViewModel: HomeScreenViewModel = viewModel(
+        factory = HomeScreenViewModel.provideFactory(userId)
+    )
+
     val uiState by homeScreenViewModel.uiState.collectAsState()
+
+    val user = remember {
+        mutableStateOf<User?>(null)
+    }
+    LaunchedEffect(userId) {
+        user.value = homeScreenViewModel.getUserById(userId)
+    }
 
     Scaffold(
         bottomBar = {
@@ -62,7 +79,12 @@ fun HomeScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { navHostController.navigate(Destinations.CREATE_PROJECT) },
+                onClick = {
+                    if (userId.isNotEmpty()) {
+//                    navHostController.navigate("${Destinations.CREATE_PROJECT}/$userId")
+                        navHostController.navigate(Destinations.CREATE_PROJECT)
+                    }
+                },
                 icon = {
                     Icon(
                         Icons.Filled.Add,
@@ -80,30 +102,43 @@ fun HomeScreen(
             )
         }
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
         ) {
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                when {
+                    uiState.isLoading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     }
-                }
 
-                uiState.isError.isNotEmpty() -> {
-                    // ErrorScreen
-                }
+                    uiState.isError.isNotEmpty() -> {
+                        //ErrorScreen
+                    }
 
-                uiState.projects.isNotEmpty() -> {
-                    // TODO: Implement authenticated user in the user attribute
-                    ProjectsOverview(user = User(name = GlobalUser.name), uiState.projects)
-                    ProjectsList(projects = uiState.projects)
+                    uiState.projects.isNotEmpty() -> {
+                        user.value?.let { user ->
+                            ProjectsOverview(user = user, uiState.projects)
+                        }
+                        ProjectsList(projects = uiState.projects)
+
+                    }
+
+                    uiState.projects.isEmpty() -> {
+                        user.value?.let { user ->
+                            ProjectsOverview(user = user, uiState.projects)
+                        }
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "No projects added", color = Color.Gray)
+                        }
+                    }
                 }
             }
         }
@@ -226,10 +261,12 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    ListMateTheme {
-        HomeScreen(navHostController = NavHostController(LocalContext.current))
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HomeScreenPreview() {
+//    val navController = rememberNavController()
+//    val sharedViewModel = SharedViewModel("userId")
+//    ListMateTheme {
+//        HomeScreen(navHostController = navController, sharedViewModel = sharedViewModel)
+//    }
+//}

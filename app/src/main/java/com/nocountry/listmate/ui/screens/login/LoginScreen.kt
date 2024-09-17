@@ -1,4 +1,4 @@
-package com.nocountry.listmate.ui.screen
+package com.nocountry.listmate.ui.screens.login
 
 import android.content.ContentValues.TAG
 import android.util.Log
@@ -50,38 +50,35 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import com.nocountry.listmate.R
-import com.nocountry.listmate.componentes.TopBar
 import com.nocountry.listmate.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.Input
+import com.nocountry.listmate.ui.components.TopBar
 import com.nocountry.listmate.ui.navigation.Destinations
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
+
+//@Composable
+//@Preview
+//fun LogInPreview() {
+//    val navController = rememberNavController()
+//    val sharedViewModel = SharedViewModel()
+//    LoginScreen(navController, sharedViewModel)
+//}
 
 @Composable
-@Preview
-fun LogInPreview(){
-    LoginScreen(rememberNavController())
-
-}
-@Composable
-
-fun LoginScreen(navHostController: NavHostController){
-    var email by remember { mutableStateOf("belletommasi@gmail.com")}
-    var password by remember { mutableStateOf("belle111") }
+fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedViewModel) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(true) }
     var displayAlert by remember { mutableStateOf(false) }
 
     Column(
-
         modifier = Modifier
             .fillMaxSize()
             .background(
                 color = Color(0xffF0F2F5)
-
             )
-
-    ){
-        TopBar(
-            titulo = "Log In",
-
-        )
+    ) {
+        TopBar(titulo = "Log In")
         Spacer(modifier = Modifier.height(20.dp))
        Column(
            modifier = Modifier
@@ -107,50 +104,44 @@ fun LoginScreen(navHostController: NavHostController){
                 modifier = Modifier
                     .align(alignment = Alignment.CenterHorizontally)
                     .fillMaxWidth(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xff31628D))
-                ,
-                shape = RoundedCornerShape(10.dp)
-                ,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xff31628D)),
+                shape = RoundedCornerShape(10.dp),
                 onClick = {
-                    if (email.isNotBlank() && password.isNotBlank()){
-
-                        if(email.isNotBlank() && password.isNotBlank()){
-                            FirebaseAuth.getInstance()
-                                .signInWithEmailAndPassword(email , password)
-                                .addOnCompleteListener{
-                                    if(it.isSuccessful){
-                                        //recuperar los datos del usuario
-                                            val db = Firebase.firestore
-                                            db.collection("users")
-                                                .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser!!.uid)
-                                                .get()
-                                                .addOnSuccessListener { result ->
-                                                    if (result.isEmpty) {
-                                                        Log.d(TAG, "No user found with email: $email")
-                                                    } else {
-                                                        for (document in result) {
-                                                            GlobalUser.initialize(document.data)
-                                                            navHostController.navigate(Destinations.HOME)
-                                                        }
-                                                    }
+                    if(email.isNotBlank() && password.isNotBlank()){
+                        FirebaseAuth.getInstance()
+                            .signInWithEmailAndPassword(email , password)
+                            .addOnCompleteListener{
+                                if(it.isSuccessful){
+                                    //recuperar los datos del usuario
+                                    val db = Firebase.firestore
+                                    db.collection("users")
+                                        .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser!!.uid)
+                                        .get()
+                                        .addOnSuccessListener { result ->
+                                            if (result.isEmpty) {
+                                                Log.d(TAG, "No user found with email: $email")
+                                            } else {
+                                                for (document in result) {
+                                                    GlobalUser.initialize(document.data)
+                                                    navHostController.navigate(Destinations.HOME)
                                                 }
-                                                .addOnFailureListener { exception ->
-                                                    Log.w(TAG, "Error getting documents.", exception)
-                                                }
+                                            }
+                                        }
+                                        .addOnFailureListener { exception ->
+                                            Log.w(TAG, "Error getting documents.", exception)
+                                        }
 
-                                        //guardar los datos delusuario en Globaluser
+                                    //guardar los datos delusuario en Globaluser
 
-                                        //GlobalUser.initialize(user) --> pista
+                                    //GlobalUser.initialize(user) --> pista
 
 
-                                    }
-                                    else{
-                                        displayAlert = true
-                                    }
                                 }
-                        }
+                                else {
+                                    displayAlert = true
+                                }
+                            }
                     }
-
                 }
             ) {
                 Text(
@@ -158,7 +149,6 @@ fun LoginScreen(navHostController: NavHostController){
                     fontSize = 23.sp
                 )
             }
-
             Spacer(modifier = Modifier.height(25.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -166,18 +156,16 @@ fun LoginScreen(navHostController: NavHostController){
                 Spacer(modifier = Modifier.width(10.dp))
                 HyperlinkText(
                     text = "Sign Up",
-                    color = Color.Black) {
+                    color = Color.Black
+                ) {
                     navHostController.navigate(Destinations.SIGNUP)
                 }
-
             }
-       }
-
-
+        }
     }
 
 
-    if (displayAlert){
+    if (displayAlert) {
         AlertDialog(
             title = {
                 Text(text = "No se pudo registrar")
@@ -206,9 +194,9 @@ fun LoginScreen(navHostController: NavHostController){
 fun HyperlinkText(
     text: String,
     modifier: Modifier = Modifier,
-    color:Color = Color.Gray,
+    color: Color = Color.Gray,
     onClick: (() -> Unit)? = null
-){
+) {
     val annotatedString = with(AnnotatedString.Builder()) {
         pushStringAnnotation(
             tag = "LINK",

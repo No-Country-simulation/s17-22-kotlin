@@ -5,5 +5,17 @@ data class User(
     var name: String = "",
     var lastName: String = "",
     val email: String = "",
-    val projects: List<Project> = emptyList()
-)
+    val projects: List<String> = emptyList()
+){
+    fun doesMatchSearchQuery(query: String): Boolean{
+        val matchingCombinations = listOf(
+            "$name$lastName",
+            "$name $lastName",
+            "$lastName$name",
+            "$lastName $name"
+        )
+        return matchingCombinations.any{
+            it.contains(query, ignoreCase = true)
+        }
+    }
+}
