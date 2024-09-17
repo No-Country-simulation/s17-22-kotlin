@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -20,6 +22,7 @@ import com.nocountry.listmate.ui.screens.createproject.CreateProjectScreen
 import com.nocountry.listmate.ui.screens.createtask.CreateTaskScreen
 import com.nocountry.listmate.ui.screens.editdeteleproject.EditDeleteProjectScreen
 import com.nocountry.listmate.ui.screens.home.HomeScreen
+import com.nocountry.listmate.ui.screens.home.HomeScreenViewModel
 import com.nocountry.listmate.ui.screens.login.LoginScreen
 import com.nocountry.listmate.ui.screens.my_tasks.MyTasksScreen
 import com.nocountry.listmate.ui.screens.profile.ProfileScreen
@@ -41,6 +44,12 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
 
     val sharedViewModel: SharedViewModel = viewModel()
 
+    val userId by sharedViewModel.userId.collectAsState()
+
+    val homeScreenViewModel: HomeScreenViewModel = viewModel(
+        factory = HomeScreenViewModel.provideFactory(userId)
+    )
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -56,7 +65,11 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 )
             }
             composable(Destinations.HOME) {
-                HomeScreen(navHostController = navHostController, sharedViewModel = sharedViewModel)
+                HomeScreen(
+                    navHostController = navHostController,
+                    homeScreenViewModel = homeScreenViewModel,
+                    userId
+                )
             }
             composable(Destinations.MY_TASKS) {
                 MyTasksScreen(
@@ -79,7 +92,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                     ProjectDetailScreen(
                         navHostController = navHostController,
                         projectId = projectId,
-                        sharedViewModel = sharedViewModel
+                        homeScreenViewModel = homeScreenViewModel
                     )
                 } else {
                     Log.e("NavigationError", "Project ID is null in backStackEntry")
@@ -106,7 +119,12 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
             ) { backStackEntry ->
                 val projectId =
                     requireNotNull(backStackEntry.arguments?.getString(Destinations.PROJECT_ID))
-                EditDeleteProjectScreen(navHostController = navHostController, projectId = projectId)
+                EditDeleteProjectScreen(
+                    navHostController = navHostController,
+                    projectId = projectId,
+                    createProjectTaskSharedViewModel = createProjectTaskSharedViewModel,
+                    homeScreenViewModel = homeScreenViewModel
+                )
             }
         }
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nocountry.listmate.data.model.Task
 import com.nocountry.listmate.domain.ProjectRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -14,6 +15,10 @@ class EditDeleteProjectViewModel(private val projectRepository: ProjectRepositor
 
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> get() = _loading
+
+    private val _projectTasks = MutableLiveData<List<Task>>(emptyList())
+    val projectsTasks: LiveData<List<Task>> get() = _projectTasks
+
 
     fun deleteProject(projectId: String, onDeleteCompleted: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {

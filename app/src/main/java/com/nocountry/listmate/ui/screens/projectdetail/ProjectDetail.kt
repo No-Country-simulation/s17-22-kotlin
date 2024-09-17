@@ -48,20 +48,15 @@ import com.nocountry.listmate.domain.ProjectDetailRepository
 import com.nocountry.listmate.ui.components.TopBarComponent
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.home.HomeScreenViewModel
-import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 import com.nocountry.listmate.ui.theme.ListMateTheme
 
 @Composable
 fun ProjectDetailScreen(
     navHostController: NavHostController,
     projectId: String,
-    sharedViewModel: SharedViewModel,
+    homeScreenViewModel: HomeScreenViewModel
 ) {
 
-    val userId by sharedViewModel.userId.collectAsState()
-    val homeScreenViewModel: HomeScreenViewModel = viewModel(
-        factory = HomeScreenViewModel.provideFactory(userId)
-    )
     val uiState by homeScreenViewModel.uiState.collectAsState()
     val selectedProject = uiState.projects.find { it.id == projectId }
     val projectDisplayName = selectedProject?.name ?: "Unknown project"

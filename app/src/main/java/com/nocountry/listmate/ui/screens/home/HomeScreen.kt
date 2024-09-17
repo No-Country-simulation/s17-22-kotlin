@@ -56,14 +56,9 @@ import com.nocountry.listmate.ui.theme.ListMateTheme
 @Composable
 fun HomeScreen(
     navHostController: NavHostController,
-    sharedViewModel: SharedViewModel
+    homeScreenViewModel: HomeScreenViewModel,
+    userId: String
 ) {
-
-    val userId by sharedViewModel.userId.collectAsState()
-
-    val homeScreenViewModel: HomeScreenViewModel = viewModel(
-        factory = HomeScreenViewModel.provideFactory(userId)
-    )
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
 
@@ -200,14 +195,15 @@ fun ProjectsList(
                     } else {
                         Log.e("NavigationError", "Project ID is empty or null")
                     }
-                }
+                },
+                navHostController
             )
         }
     }
 }
 
 @Composable
-fun ProjectSection(project: Project, backgroundColor: Color, onClick: (String) -> Unit) {
+fun ProjectSection(project: Project, backgroundColor: Color, onClick: (String) -> Unit, navHostController: NavHostController) {
     val projectId = project.id
     Log.d("ProjectSection", "Project ID in Section: $projectId")
 

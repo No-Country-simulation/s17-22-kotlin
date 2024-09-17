@@ -12,5 +12,4 @@ object Destinations {
     const val PROJECT_ID = "projectId"
     const val USER_ID = "userId"
     const val EDIT_DELETE_PROJECT = "EditDeleteProject"
-    const val PROJECT_ID = "ProjectId"
 }

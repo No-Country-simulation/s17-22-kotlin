@@ -284,7 +284,7 @@ fun CreateProjectScreen(
     }
 }
 
-private fun onAddTaskClick(
+fun onAddTaskClick(
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
     projectParticipants: List<User>,
     navHostController: NavHostController
