@@ -36,6 +36,9 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
     private val _projectTitle = MutableLiveData<String>()
     val projectTitle: LiveData<String> get() = _projectTitle
 
+    private val _projectDescription = MutableLiveData<String>()
+    val projectDescription: LiveData<String> get() = _projectDescription
+
     private val _project = MutableLiveData<Project>()
 
     private val _loading = MutableLiveData<Boolean>()
@@ -59,7 +62,11 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         _projectTitle.value = projectTitle
     }
 
-    fun createProjectAndTasks(ownerId: String, onProjectCreated: () -> Unit) {
+    fun setProjectDescription(projectDescription: String){
+        _projectDescription.value = projectDescription
+    }
+
+    fun createProjectAndTasks(ownerId: String, projectDescription: String, onProjectCreated: () -> Unit) {
         val title = _projectTitle.value
 
         val participants = _projectParticipants.value
@@ -74,7 +81,7 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
             try {
                 _loading.postValue(true)
                 if (title != null && participants?.isNotEmpty() == true) {
-                    projectRepository.createProject(title, ownerId, participantsId, tasksId)
+                    projectRepository.createProject(title, ownerId, participantsId, tasksId, projectDescription)
                         .collect { createdProject ->
                             _project.postValue(createdProject)
                             projectRepository.addParticipantsIds(createdProject.id, participants)
@@ -157,6 +164,7 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
 
     private fun resetVariables() {
         _projectTitle.value = ""
+        _projectDescription.value = ""
         _tasks.value?.clear()
         _tasks.value = _tasks.value
         _projectParticipants.value?.clear()

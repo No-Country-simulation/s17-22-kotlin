@@ -30,6 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,12 +64,15 @@ fun CreateProjectScreen(
     sharedViewModel: SharedViewModel
 ) {
     val projectTitle by createProjectTaskSharedViewModel.projectTitle.observeAsState("")
+    val projectDescription by createProjectTaskSharedViewModel.projectDescription.observeAsState("")
     val tasks by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
     val loading by createProjectTaskSharedViewModel.loading.observeAsState(false)
     val searchText by createProjectTaskSharedViewModel.searchText.collectAsState()
     val users by createProjectTaskSharedViewModel.users.collectAsState()
     val isSearching by createProjectTaskSharedViewModel.isSearching.collectAsState()
-    val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(mutableListOf())
+    val projectParticipants by createProjectTaskSharedViewModel.projectParticipants.observeAsState(
+        mutableListOf()
+    )
     val userId by sharedViewModel.userId.collectAsState()
 
     val context = LocalContext.current
@@ -134,7 +140,9 @@ fun CreateProjectScreen(
                                         .fillMaxWidth()
                                         .padding(vertical = 16.dp)
                                         .clickable {
-                                            createProjectTaskSharedViewModel.onAddParticipantToProject(participant)
+                                            createProjectTaskSharedViewModel.onAddParticipantToProject(
+                                                participant
+                                            )
                                             createProjectTaskSharedViewModel.onSearchTextChange("")
                                         }
                                 )
@@ -153,6 +161,26 @@ fun CreateProjectScreen(
                         ParticipantSpotComponent(name = participant.name + " " + participant.lastName)
                     }
                 }
+            }
+            item {
+                Text(text = "Add project description:", style = MaterialTheme.typography.bodyMedium)
+            }
+            item {
+                InputTextFieldComponent(
+                    value = projectDescription,
+                    onValueChange = { createProjectTaskSharedViewModel.setProjectDescription(it) },
+                    label = null,
+                    leadingIcon = null,
+                    trailingIcon = { },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    placeholder = null
+                )
             }
             item {
                 ButtonComponent(
@@ -210,7 +238,8 @@ fun CreateProjectScreen(
                             onCreateProjectClick(
                                 navHostController,
                                 createProjectTaskSharedViewModel,
-                                userId
+                                userId,
+                                projectDescription
                             )
 
 
@@ -267,9 +296,10 @@ private fun onAddTaskClick(
 private fun onCreateProjectClick(
     navHostController: NavHostController,
     sharedViewModel: CreateProjectTaskSharedViewModel,
-    ownerId: String
+    ownerId: String,
+    projectDescription: String
 ) {
-    sharedViewModel.createProjectAndTasks(ownerId) {
+    sharedViewModel.createProjectAndTasks(ownerId, projectDescription) {
         navHostController.navigate(Destinations.HOME)
     }
 }

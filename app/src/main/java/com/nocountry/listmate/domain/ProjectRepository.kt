@@ -10,7 +10,8 @@ interface ProjectRepository {
         projectName: String,
         ownerId: String,
         participants: List<String>?,
-        tasks: List<String>?
+        tasks: List<String>?,
+        projectDescription: String
     ): Flow<Project>
 
     suspend fun createTasks(projectId: String, tasks: List<Task>): Flow<List<Task>>

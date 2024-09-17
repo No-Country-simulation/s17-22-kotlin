@@ -17,12 +17,14 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
         ownerId: String,
         participants: List<String>?,
         tasks: List<String>?,
+        projectDescription: String
     ): Flow<Project> = callbackFlow {
         val project = hashMapOf(
             "name" to projectName,
             "ownerId" to ownerId,
             "participants" to participants,
-            "tasks" to tasks
+            "tasks" to tasks,
+            "description" to projectDescription
         )
 
         firebase.collection("projects")
@@ -35,7 +37,7 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
                         val createProject = Project(
                             projectId,
                             projectName,
-                            "",
+                            projectDescription,
                             participants ?: emptyList(),
                             tasks,
                             ownerId

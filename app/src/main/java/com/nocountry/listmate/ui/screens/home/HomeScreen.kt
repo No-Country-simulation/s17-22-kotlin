@@ -69,6 +69,7 @@ fun HomeScreen(
         mutableStateOf<User?>(null)
     }
     LaunchedEffect(userId) {
+        homeScreenViewModel.getProjectsById(userId)
         user.value = homeScreenViewModel.getUserById(userId)
     }
 

@@ -1,6 +1,10 @@
 package com.nocountry.listmate.ui.screens.editdeteleproject
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,17 +14,22 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +56,8 @@ fun EditDeleteProjectScreen(navHostController: NavHostController, projectId: Str
     )
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val loading by editDeleteProjectViewModel.loading.observeAsState(false)
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -62,7 +73,10 @@ fun EditDeleteProjectScreen(navHostController: NavHostController, projectId: Str
                     IconButton(onClick = {
                         showDeleteConfirmation = true
                     }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete project")
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete project"
+                        )
                     }
                 })
         }
@@ -96,12 +110,13 @@ fun EditDeleteProjectScreen(navHostController: NavHostController, projectId: Str
                 confirmButton = {
                     Button(
                         onClick = {
-                            editDeleteProjectViewModel.deleteProject(projectId)
+                            editDeleteProjectViewModel.deleteProject(projectId) {
+                                Toast.makeText(context, "Project and tasks deleted", Toast.LENGTH_SHORT).show()
+                                navHostController.navigate(Destinations.HOME)
+                            }
                             showDeleteConfirmation = false
-                            navHostController.navigate(Destinations.HOME)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-
                     ) {
                         Text("Delete", color = Color.White)
                     }
@@ -116,6 +131,26 @@ fun EditDeleteProjectScreen(navHostController: NavHostController, projectId: Str
                     }
                 }
             )
+        }
+    }
+    if (loading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(modifier = Modifier.padding(10.dp))
+                Text(
+                    text = "Deleting project and tasks", style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                )
+            }
         }
     }
 }

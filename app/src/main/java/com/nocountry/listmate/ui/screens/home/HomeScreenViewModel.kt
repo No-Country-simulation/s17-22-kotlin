@@ -33,14 +33,14 @@ class HomeScreenViewModel(
     val userId = savedStateHandle.get<String>("userId")
 
 
-    init {
+//    init {
+//
+//        if (userId != null) {
+//            getProjectsById(userId)
+//        }
+//    }
 
-        if (userId != null) {
-            getProjectsById(userId)
-        }
-    }
-
-    private fun getProjectsById(userId: String) {
+    fun getProjectsById(userId: String) {
         _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
