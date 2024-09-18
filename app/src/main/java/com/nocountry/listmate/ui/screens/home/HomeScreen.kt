@@ -48,6 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
 import com.nocountry.listmate.data.model.User
+import com.nocountry.listmate.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
