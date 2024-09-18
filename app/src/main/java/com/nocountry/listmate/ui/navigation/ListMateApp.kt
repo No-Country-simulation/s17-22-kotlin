@@ -122,7 +122,6 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 EditDeleteProjectScreen(
                     navHostController = navHostController,
                     projectId = projectId,
-                    createProjectTaskSharedViewModel = createProjectTaskSharedViewModel,
                     homeScreenViewModel = homeScreenViewModel
                 )
             }
