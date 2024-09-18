@@ -54,8 +54,8 @@ import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 
 @Composable
 fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedViewModel) {
-    var email by remember { mutableStateOf("belletommasi@gmail.com") }
-    var password by remember { mutableStateOf("belle111") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(true) }
     var displayAlert by remember { mutableStateOf(false) }
 
@@ -106,11 +106,15 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                                         .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser!!.uid)
                                         .get()
                                         .addOnSuccessListener { result ->
+                                            val userId = FirebaseAuth.getInstance().currentUser?.uid
                                             if (result.isEmpty) {
                                                 Log.d(TAG, "No user found with email: $email")
                                             } else {
                                                 for (document in result) {
                                                     GlobalUser.initialize(document)
+                                                    if (userId != null) {
+                                                        sharedViewModel.setUserId(userId)
+                                                    }
                                                     navHostController.navigate(Destinations.HOME)
                                                 }
                                             }

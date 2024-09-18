@@ -58,18 +58,22 @@ import com.nocountry.listmate.ui.screens.createproject.onAddTaskClick
 import com.nocountry.listmate.ui.screens.home.HomeScreenViewModel
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import androidx.compose.foundation.lazy.items
+import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModelFactory
 
 
 @Composable
 fun EditDeleteProjectScreen(
     navHostController: NavHostController,
     projectId: String,
-    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
     homeScreenViewModel: HomeScreenViewModel
 ) {
 
     val projectRepository: ProjectRepository =
         ProjectRepositoryImpl(FirebaseFirestore.getInstance())
+
+    val createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel = viewModel(
+        factory = CreateProjectTaskSharedViewModelFactory(projectRepository)
+    )
 
     val editDeleteProjectViewModel: EditDeleteProjectViewModel = viewModel(
         factory = EditDeleteViewModelFactory(projectRepository)
@@ -121,9 +125,13 @@ fun EditDeleteProjectScreen(
         ) {
             item {
                 if (selectedProject != null) {
+                    var projectName by remember { mutableStateOf(selectedProject.name) }
                     InputTextFieldComponent(
-                        value = selectedProject.name,
-                        onValueChange = {},
+                        value = projectName,
+                        onValueChange = { newValue ->
+                            projectName = newValue
+                            selectedProject.name = newValue
+                        },
                         label = R.string.project_name_input_label,
                         leadingIcon = null,
                         trailingIcon = { /*TODO*/ },
@@ -192,9 +200,13 @@ fun EditDeleteProjectScreen(
             }
             item {
                 if (selectedProject != null) {
+                    var projectDescription by remember { mutableStateOf(selectedProject.description) }
                     InputTextFieldComponent(
-                        value = selectedProject.description,
-                        onValueChange = { createProjectTaskSharedViewModel.setProjectDescription(it) },
+                        value = projectDescription,
+                        onValueChange = { newValue ->
+                            projectDescription = newValue
+                            selectedProject.description = projectDescription
+                        },
                         label = null,
                         leadingIcon = null,
                         trailingIcon = { },

@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nocountry.listmate.data.model.Task
+import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.domain.ProjectRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
