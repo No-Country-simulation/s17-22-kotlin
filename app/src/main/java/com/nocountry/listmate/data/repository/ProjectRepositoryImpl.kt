@@ -9,6 +9,7 @@ import com.nocountry.listmate.domain.ProjectRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
 class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRepository {
@@ -144,4 +145,44 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
             throw e
         }
     }
+
+    override suspend fun fetchProjectParticipantsFromDb(projectParticipants: List<String>): Flow<List<User>> = flow {
+        try {
+            val users = mutableListOf<User>()
+            val usersCollection = firebase.collection("users")
+
+            val query = usersCollection.whereIn("uid", projectParticipants).get().await()
+
+            query.documents.forEach { document ->
+                document.toObject(User::class.java)?.let { user ->
+                    users.add(user)
+                }
+            }
+
+            emit(users)
+        } catch (e: Exception) {
+            Log.e("ProjectRepository", "Error fetching participants: ${e.message}")
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun fetchProjectTasksFromDb(projectTasks: List<String>): Flow<List<Task>> = flow {
+        try {
+            val tasks = mutableListOf<Task>()
+            val usersCollection = firebase.collection("tasks")
+
+            projectTasks.forEach { uid ->
+                val userDoc = usersCollection.document(uid).get().await()
+                userDoc.toObject(Task::class.java)?.let { task ->
+                    tasks.add(task)
+                }
+            }
+
+            emit(tasks)
+        } catch (e: Exception) {
+            Log.e("ProjectRepository", "Error fetching participants: ${e.message}")
+            emit(emptyList())
+        }
+    }
+
 }

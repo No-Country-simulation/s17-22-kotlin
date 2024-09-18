@@ -21,5 +21,6 @@
     <string name="find_participants_label">Find participants</string>
     <string name="addtask_button_label">Add new task</string>
     <string name="create_project_button_label">Create project</string>
+    <string name="update_project_button_label">Update project</string>
 
 </resources>

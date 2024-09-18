@@ -21,4 +21,8 @@ interface ProjectRepository {
     suspend fun fetchUsers(): Flow<List<User>>
 
     suspend fun deleteProject(projectId: String)
+
+    suspend fun fetchProjectParticipantsFromDb(projectParticipants: List<String>): Flow<List<User>>
+
+    suspend fun fetchProjectTasksFromDb(projectTasks: List<String>): Flow<List<Task>>
 }

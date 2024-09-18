@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -160,6 +161,46 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
             _projectParticipants.value = updatedParticipants
         }
     }
+
+    fun fetchProjectParticipantsFromDb(projectParticipants: List<String>) {
+        viewModelScope.launch {
+            try {
+                projectRepository.fetchProjectParticipantsFromDb(projectParticipants)
+                    .flowOn(Dispatchers.IO)
+                    .collect { participants ->
+                        withContext(Dispatchers.Main) {
+                            _projectParticipants.value = participants.toMutableList()
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.e("ProjectViewModel", "Error collecting participants: ${e.message}", e)
+            }
+        }
+    }
+
+    fun fetchProjectTasksFromDb(projectTasks: List<String>){
+        viewModelScope.launch {
+            try {
+                projectRepository.fetchProjectTasksFromDb(projectTasks)
+                    .flowOn(Dispatchers.IO)
+                    .collect { tasks ->
+                        withContext(Dispatchers.Main) {
+                            _tasks.value = tasks.toMutableList()
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.e("ProjectViewModel", "Error collecting tasks: ${e.message}", e)
+            }
+        }
+    }
+
+    fun updateProjectAndTasks(projectId: String, onProjectUpdated: () -> Unit){
+        onProjectUpdated()
+
+    }
+
+
+
 
 
     private fun resetVariables() {

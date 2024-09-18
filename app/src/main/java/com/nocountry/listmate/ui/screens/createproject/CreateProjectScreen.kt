@@ -295,11 +295,11 @@ fun onAddTaskClick(
 
 private fun onCreateProjectClick(
     navHostController: NavHostController,
-    sharedViewModel: CreateProjectTaskSharedViewModel,
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
     ownerId: String,
     projectDescription: String
 ) {
-    sharedViewModel.createProjectAndTasks(ownerId, projectDescription) {
+    createProjectTaskSharedViewModel.createProjectAndTasks(ownerId, projectDescription) {
         navHostController.navigate(Destinations.HOME)
     }
 }

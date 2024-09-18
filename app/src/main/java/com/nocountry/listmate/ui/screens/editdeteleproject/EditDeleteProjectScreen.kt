@@ -58,6 +58,7 @@ import com.nocountry.listmate.ui.screens.createproject.onAddTaskClick
 import com.nocountry.listmate.ui.screens.home.HomeScreenViewModel
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.LaunchedEffect
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModelFactory
 
 
@@ -81,6 +82,8 @@ fun EditDeleteProjectScreen(
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
     val selectedProject = uiState.projects.find { it.id == projectId }
+    var projectName by remember { mutableStateOf(selectedProject?.name) }
+    var projectDescription by remember { mutableStateOf(selectedProject?.description) }
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val loading by editDeleteProjectViewModel.loading.observeAsState(false)
@@ -93,6 +96,19 @@ fun EditDeleteProjectScreen(
         mutableListOf()
     )
     val tasks by createProjectTaskSharedViewModel.tasks.observeAsState(mutableListOf())
+
+
+    LaunchedEffect(selectedProject?.participants) {
+        selectedProject?.participants?.let { participantsIds ->
+            createProjectTaskSharedViewModel.fetchProjectParticipantsFromDb(participantsIds)
+        }
+    }
+
+    LaunchedEffect(selectedProject?.tasks) {
+        selectedProject?.tasks?.let { taskId ->
+            createProjectTaskSharedViewModel.fetchProjectTasksFromDb(taskId)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -125,23 +141,24 @@ fun EditDeleteProjectScreen(
         ) {
             item {
                 if (selectedProject != null) {
-                    var projectName by remember { mutableStateOf(selectedProject.name) }
-                    InputTextFieldComponent(
-                        value = projectName,
-                        onValueChange = { newValue ->
-                            projectName = newValue
-                            selectedProject.name = newValue
-                        },
-                        label = R.string.project_name_input_label,
-                        leadingIcon = null,
-                        trailingIcon = { /*TODO*/ },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            capitalization = KeyboardCapitalization.Sentences
-                        ),
-                        placeholder = null,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    projectName?.let {
+                        InputTextFieldComponent(
+                            value = it,
+                            onValueChange = { newValue ->
+                                projectName = newValue
+                                selectedProject.name = newValue
+                            },
+                            label = R.string.project_name_input_label,
+                            leadingIcon = null,
+                            trailingIcon = { /*TODO*/ },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                capitalization = KeyboardCapitalization.Sentences
+                            ),
+                            placeholder = null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
             item {
@@ -196,29 +213,31 @@ fun EditDeleteProjectScreen(
                 }
             }
             item {
-                Text(text = "Add project description:", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Update project description:", style = MaterialTheme.typography.bodyMedium)
             }
             item {
                 if (selectedProject != null) {
-                    var projectDescription by remember { mutableStateOf(selectedProject.description) }
-                    InputTextFieldComponent(
-                        value = projectDescription,
-                        onValueChange = { newValue ->
-                            projectDescription = newValue
-                            selectedProject.description = projectDescription
-                        },
-                        label = null,
-                        leadingIcon = null,
-                        trailingIcon = { },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            capitalization = KeyboardCapitalization.Sentences
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        placeholder = null
-                    )
+
+                    projectDescription?.let {
+                        InputTextFieldComponent(
+                            value = it,
+                            onValueChange = { newValue ->
+                                projectDescription = newValue
+                                selectedProject.description = projectDescription as String
+                            },
+                            label = null,
+                            leadingIcon = null,
+                            trailingIcon = { },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                capitalization = KeyboardCapitalization.Sentences
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            placeholder = null
+                        )
+                    }
                 }
             }
             item {
@@ -270,39 +289,31 @@ fun EditDeleteProjectScreen(
                     TaskItem(task)
                 }
             }
-//            item {
-//                Spacer(modifier = Modifier.height(16.dp))
-//                ButtonComponent(
-//                    text = R.string.create_project_button_label,
-//                    onClick = {
-//                        if (selectedProject != null) {
-//                            if (selectedProject.name.isNotBlank()) {
-//                                onCreateProjectClick(
-//                                    navHostController,
-//                                    createProjectTaskSharedViewModel,
-//                                    userId,
-//                                    projectDescription
-//                                )
-//
-//
-//                            } else {
-//                                Toast.makeText(
-//                                    context,
-//                                    "Please insert project name",
-//                                    Toast.LENGTH_SHORT
-//                                ).show()
-//                            }
-//                        }
-//                    },
-//                    backgroundColor = Color(0xFFFFE086),
-//                    icon = null,
-//                    textColor = MaterialTheme.colorScheme.surfaceTint,
-//                    textStyle = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(48.dp),
-//                )
-//            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                ButtonComponent(
+                    text = R.string.update_project_button_label,
+                    onClick = {
+                        if (selectedProject != null) {
+                            if (selectedProject.name.isNotBlank()) {
+                                onUpdateProjectClick(
+                                    navHostController,
+                                    projectId,
+                                    createProjectTaskSharedViewModel
+                                )
+                            }
+                        }
+                    },
+                    backgroundColor = Color(0xFFFFE086),
+                    icon = null,
+                    textColor = MaterialTheme.colorScheme.surfaceTint,
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                )
+
+            }
         }
         if (showDeleteConfirmation) {
             AlertDialog(
@@ -360,4 +371,17 @@ fun EditDeleteProjectScreen(
             }
         }
     }
+
+}
+
+private fun onUpdateProjectClick(
+    navHostController: NavHostController,
+    projectId: String,
+    createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
+) {
+    createProjectTaskSharedViewModel.updateProjectAndTasks(projectId){
+        navHostController.navigate(Destinations.HOME)
+    }
+
+
 }
