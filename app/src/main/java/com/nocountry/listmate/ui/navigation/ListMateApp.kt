@@ -6,8 +6,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -16,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.firebase.firestore.FirebaseFirestore
+import com.nocountry.listmate.data.local.SettingsDataStore
 import com.nocountry.listmate.data.repository.ProjectRepositoryImpl
 import com.nocountry.listmate.domain.ProjectRepository
 import com.nocountry.listmate.ui.screens.createproject.CreateProjectScreen
@@ -34,6 +38,13 @@ import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 
 @Composable
 fun ListMateApp(navHostController: NavHostController = rememberNavController()) {
+
+    val context = LocalContext.current
+    val settingsDataStore = remember { SettingsDataStore(context) }
+    val userIdFlow = settingsDataStore.getUserId.collectAsState(initial = "")
+    val startDestination by remember {
+        derivedStateOf { if (userIdFlow.value?.isNotEmpty() == true) Destinations.HOME else Destinations.LOGIN }
+    }
 
     val projectRepository: ProjectRepository =
         ProjectRepositoryImpl(FirebaseFirestore.getInstance())
@@ -54,13 +65,19 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        NavHost(navController = navHostController, startDestination = Destinations.LOGIN) {
+        NavHost(navController = navHostController, startDestination = startDestination) {
             composable(Destinations.SIGNUP) {
-                SignUpScreen(navHostController = navHostController)
+                SignUpScreen(
+                    navHostController = navHostController,
+                    settingsDataStore = settingsDataStore,
+                    context = context
+                )
             }
             composable(Destinations.LOGIN) {
                 LoginScreen(
                     navHostController = navHostController,
+                    settingsDataStore = settingsDataStore,
+                    context = context,
                     sharedViewModel = sharedViewModel
                 )
             }
@@ -78,7 +95,11 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 )
             }
             composable(Destinations.PROFILE) {
-                ProfileScreen(navHostController = navHostController)
+                ProfileScreen(
+                    navHostController = navHostController,
+                    settingsDataStore = settingsDataStore,
+                    context = context,
+                )
             }
             composable(
                 route = "${Destinations.PROJECT_DETAIL}/{${Destinations.PROJECT_ID}}",

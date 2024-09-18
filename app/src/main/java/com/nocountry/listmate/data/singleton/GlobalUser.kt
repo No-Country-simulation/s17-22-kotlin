@@ -1,4 +1,4 @@
-package com.nocountry.listmate.singleton
+package com.nocountry.listmate.data.singleton
 
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.nocountry.listmate.data.model.User

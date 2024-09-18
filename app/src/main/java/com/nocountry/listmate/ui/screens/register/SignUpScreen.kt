@@ -1,5 +1,7 @@
 package com.nocountry.listmate.ui.screens.register
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,31 +24,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.nocountry.listmate.data.UsuarioManager
+import com.nocountry.listmate.data.local.SettingsDataStore
 import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.components.TopBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.login.HyperlinkText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-@Composable
-@Preview
-fun SignUpPreview() {
-    SignUpScreen(rememberNavController())
-
-}
+//@Composable
+//@Preview
+//fun SignUpPreview() {
+//    SignUpScreen(rememberNavController())
+//
+//}
 
 @Composable
 
 fun SignUpScreen(
-    navHostController: NavHostController
-){
+    navHostController: NavHostController,
+    settingsDataStore: SettingsDataStore,
+    context: Context
+) {
     var name by remember { mutableStateOf("") }
     var lastname by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -74,19 +80,19 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally
 
         ) {
-            Input(label = "Name", value = name){
-               name = it
+            Input(label = "Name", value = name) {
+                name = it
             }
-            Input(label = "Lastname", value = lastname){
+            Input(label = "Lastname", value = lastname) {
                 lastname = it
             }
             Input(label = "Email", value = username) {
                 username = it
             }
-            Input(label = "Password", value =password, isPassword = true){
+            Input(label = "Password", value = password, isPassword = true) {
                 password = it
             }
-            Input(label = "Repeat Passsword", value = passwordRepeat, isPassword = true){
+            Input(label = "Repeat Passsword", value = passwordRepeat, isPassword = true) {
                 passwordRepeat = it
             }
             Spacer(modifier = Modifier.height(25.dp))
@@ -111,23 +117,31 @@ fun SignUpScreen(
                         && password == passwordRepeat
                     ) {
                         FirebaseAuth.getInstance()
-                            .createUserWithEmailAndPassword(username , password)
-                            .addOnCompleteListener{
-                                if(it.isSuccessful){
-                                    FirebaseAuth.getInstance().signInWithEmailAndPassword(username, password)
-                                    val user = User(
-                                        name = name,
-                                        lastName = lastname,
-                                        email = username,
-                                        uid = FirebaseAuth.getInstance().currentUser?.uid?:""
-                                    )
+                            .createUserWithEmailAndPassword(username, password)
+                            .addOnCompleteListener {
+                                    task ->
+                                if (task.isSuccessful) {
+                                    val userId = FirebaseAuth.getInstance().currentUser?.uid
+                                    if (userId != null) {
+                                        // Guardar el ID del usuario en DataStore
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            settingsDataStore.saveUserId(userId)
+                                            Log.d("DataStore", "UserId saved: $userId")
+                                        }
 
-                                    UsuarioManager().guardarUsuario(user)
-
-                                    navHostController.navigate(Destinations.HOME)
-                                }
-                                else{
-//                                    displayAlert = true
+                                        // Crear usuario en la base de datos de la aplicación
+                                        val user = User(
+                                            name = name,
+                                            lastName = lastname,
+                                            email = username,
+                                            uid = userId
+                                        )
+                                        UsuarioManager().guardarUsuario(user)
+                                        // Navegar a la pantalla principal
+                                        navHostController.navigate(Destinations.HOME)
+                                    }
+                                } else {
+                                    displayAlert = true
                                 }
                             }
                     }

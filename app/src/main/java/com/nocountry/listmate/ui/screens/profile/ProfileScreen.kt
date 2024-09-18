@@ -1,5 +1,6 @@
 package com.nocountry.listmate.ui.screens.profile
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,29 +37,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.UsuarioManager
-import com.nocountry.listmate.singleton.GlobalUser
+import com.nocountry.listmate.data.local.SettingsDataStore
+import com.nocountry.listmate.data.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.navigation.Destinations
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
+
+//@Composable
+//@Preview
+//fun ProfileScreenPreview() {
+//
+//    ProfileScreen(rememberNavController())
+//
+//}
 
 @Composable
-@Preview
-fun ProfileScreenPreview(){
-
-    ProfileScreen(rememberNavController())
-
-}
-@Composable
-fun  ProfileScreen(navHostController: NavHostController){
-   // val db = FirebaseFirestore.getInstance()
+fun ProfileScreen(
+    navHostController: NavHostController,
+    settingsDataStore: SettingsDataStore,
+    context: Context,
+) {
+    val savedName = settingsDataStore.getName.collectAsState(initial = "")
+    val savedLastName = settingsDataStore.getLastName.collectAsState(initial = "")
+    // val db = FirebaseFirestore.getInstance()
     var name by remember { mutableStateOf(GlobalUser.name) }
     var lastname by remember { mutableStateOf(GlobalUser.lastName) }
     Column(
@@ -67,7 +78,7 @@ fun  ProfileScreen(navHostController: NavHostController){
 
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopProfile(navHostController)
+        TopProfile(navHostController, settingsDataStore, context)
         Spacer(modifier = Modifier.height(25.dp))
 
         Box(
@@ -111,13 +122,18 @@ fun  ProfileScreen(navHostController: NavHostController){
 
         Button(
             onClick = {
-                      if (name.isNotEmpty() && lastname.isNotEmpty()){
-                          GlobalUser.name = name
-                          GlobalUser.lastName = lastname
-                          val usuario = GlobalUser.getUserObject()
+                if (name.isNotEmpty() && lastname.isNotEmpty()) {
+                    GlobalUser.name = name
+                    GlobalUser.lastName = lastname
+                    val usuario = GlobalUser.getUserObject()
 
-                          UsuarioManager().actualizarNombreApellidoUsuario(GlobalUser.userKey, usuario)
-                      }
+                    UsuarioManager().actualizarNombreApellidoUsuario(GlobalUser.userKey, usuario)
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        settingsDataStore.saveName(name)
+                        settingsDataStore.saveLastName(lastname)
+                    }
+                }
             },
 
             modifier = Modifier
@@ -136,10 +152,13 @@ fun  ProfileScreen(navHostController: NavHostController){
 
     }
 }
+
 @Composable
 fun TopProfile(
-    navHostController: NavHostController
-){
+    navHostController: NavHostController,
+    settingsDataStore: SettingsDataStore,
+    context: Context,
+) {
     var expanded by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -151,9 +170,11 @@ fun TopProfile(
             modifier = Modifier
                 .padding(5.dp)
                 .align(Alignment.CenterVertically)
-                .clickable { navHostController.navigate(Destinations.HOME) {
-                    popUpTo(Destinations.LOGIN) { inclusive = false }
-                }   }
+                .clickable {
+                    navHostController.navigate(Destinations.HOME) {
+                        popUpTo(Destinations.LOGIN) { inclusive = false }
+                    }
+                }
 
         )
 
@@ -172,8 +193,8 @@ fun TopProfile(
 
         Button(
             modifier = Modifier.height(50.dp),
-            onClick = { expanded = true},
-           colors = ButtonDefaults.buttonColors(containerColor = Color(0x00cce5ff)),
+            onClick = { expanded = true },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0x00cce5ff)),
             shape = RoundedCornerShape(10.dp)
         ) {
             Icon(
@@ -186,7 +207,7 @@ fun TopProfile(
             )
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = {expanded = false }
+                onDismissRequest = { expanded = false }
             ) {
                 DropdownMenuItem(text = { Text(text = "Log out") }, onClick = {
                     expanded = false
@@ -195,6 +216,9 @@ fun TopProfile(
                     GlobalUser.email = ""
                     GlobalUser.uid = ""
                     FirebaseAuth.getInstance().signOut()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        settingsDataStore.clearUserPreferences(context)
+                    }
                     navHostController.popBackStack()
                 })
 

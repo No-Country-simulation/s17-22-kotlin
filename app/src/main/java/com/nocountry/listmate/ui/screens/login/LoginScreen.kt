@@ -1,6 +1,7 @@
 package com.nocountry.listmate.ui.screens.login
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,11 +39,15 @@ import androidx.navigation.NavHostController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
-import com.nocountry.listmate.singleton.GlobalUser
+import com.nocountry.listmate.data.local.SettingsDataStore
+import com.nocountry.listmate.data.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.components.TopBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 //@Composable
 //@Preview
@@ -53,7 +58,12 @@ import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 //}
 
 @Composable
-fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedViewModel) {
+fun LoginScreen(
+    navHostController: NavHostController,
+    settingsDataStore: SettingsDataStore,
+    context: Context,
+    sharedViewModel: SharedViewModel
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(true) }
@@ -68,23 +78,26 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
     ) {
         TopBar(titulo = "Log In")
         Spacer(modifier = Modifier.height(20.dp))
-       Column(
-           modifier = Modifier
-               .fillMaxHeight(1f)
-               .padding(20.dp),
-           verticalArrangement = Arrangement.Center,
+        Column(
+            modifier = Modifier
+                .fillMaxHeight(1f)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.Center,
 
 
-       ) {
-           Input(label = "Email", value = email){ email = it }
+            ) {
+            Input(label = "Email", value = email) { email = it }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-           Input(label = "Password", value = password, isPassword = true){ password = it }
+            Input(label = "Password", value = password, isPassword = true) { password = it }
 
-           Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(25.dp))
 
-            HyperlinkText(text = "¿Forgot password?", modifier = Modifier.align(alignment = Alignment.Start)) {  }
+            HyperlinkText(
+                text = "¿Forgot password?",
+                modifier = Modifier.align(alignment = Alignment.Start)
+            ) { }
 
             Spacer(modifier = Modifier.height(25.dp))
 
@@ -95,15 +108,18 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xff31628D)),
                 shape = RoundedCornerShape(10.dp),
                 onClick = {
-                    if(email.isNotBlank() && password.isNotBlank()){
+                    if (email.isNotBlank() && password.isNotBlank()) {
                         FirebaseAuth.getInstance()
-                            .signInWithEmailAndPassword(email , password)
-                            .addOnCompleteListener{
-                                if(it.isSuccessful){
+                            .signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener {
+                                if (it.isSuccessful) {
                                     //recuperar los datos del usuario
                                     val db = Firebase.firestore
                                     db.collection("users")
-                                        .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser!!.uid)
+                                        .whereEqualTo(
+                                            "uid",
+                                            FirebaseAuth.getInstance().currentUser!!.uid
+                                        )
                                         .get()
                                         .addOnSuccessListener { result ->
                                             val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -114,6 +130,9 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                                                     GlobalUser.initialize(document)
                                                     if (userId != null) {
                                                         sharedViewModel.setUserId(userId)
+                                                        CoroutineScope(Dispatchers.IO).launch {
+                                                            settingsDataStore.saveUserId(userId)
+                                                        }
                                                     }
                                                     navHostController.navigate(Destinations.HOME)
                                                 }
@@ -128,8 +147,7 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                                     //GlobalUser.initialize(user) --> pista
 
 
-                                }
-                                else {
+                                } else {
                                     displayAlert = true
                                 }
                             }

@@ -75,6 +75,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.runtime.livedata)
 
+    //DataStore
+    implementation(libs.androidx.datastore.preferences)
+
+    //Gson
+    implementation(libs.google.gson)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
