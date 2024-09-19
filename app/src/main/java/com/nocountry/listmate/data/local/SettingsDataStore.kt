@@ -24,6 +24,19 @@ class SettingsDataStore(private val context: Context) {
         private val LAST_NAME_KEY = stringPreferencesKey("lastName")
     }
 
+    val userFlow: Flow<String> = context.dataStore.data
+        .catch {
+            if (it is IOException) {
+                it.printStackTrace()
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map { preferences ->
+            preferences[USER_ID_KEY] ?: ""
+        }
+
     val getUserId : Flow<String?> = context.dataStore.data
         .map { preferences ->
             preferences[USER_ID_KEY] ?: ""

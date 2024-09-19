@@ -68,7 +68,6 @@ fun ProfileScreen(
 ) {
     val savedName = settingsDataStore.getName.collectAsState(initial = "")
     val savedLastName = settingsDataStore.getLastName.collectAsState(initial = "")
-    // val db = FirebaseFirestore.getInstance()
     var name by remember { mutableStateOf(GlobalUser.name) }
     var lastname by remember { mutableStateOf(GlobalUser.lastName) }
     Column(

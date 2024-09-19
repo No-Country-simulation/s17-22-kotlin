@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -35,6 +36,7 @@ import com.nocountry.listmate.ui.screens.register.SignUpScreen
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModel
 import com.nocountry.listmate.ui.screens.sharedviewmodels.CreateProjectTaskSharedViewModelFactory
 import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
+import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModelFactory
 
 @Composable
 fun ListMateApp(navHostController: NavHostController = rememberNavController()) {
@@ -53,7 +55,12 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
         factory = CreateProjectTaskSharedViewModelFactory(projectRepository)
     )
 
-    val sharedViewModel: SharedViewModel = viewModel()
+    val sharedViewModel: SharedViewModel = viewModel(
+        factory = SharedViewModelFactory(
+            settingsDataStore = settingsDataStore,
+            savedStateHandle = SavedStateHandle()
+        )
+    )
 
     val userId by sharedViewModel.userId.collectAsState()
 
