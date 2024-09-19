@@ -37,17 +37,33 @@ class SettingsDataStore(private val context: Context) {
             preferences[USER_ID_KEY] ?: ""
         }
 
-    val getUserId : Flow<String?> = context.dataStore.data
+    val getUserId : Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[USER_ID_KEY] ?: ""
         }
 
-    val getName : Flow<String?> = context.dataStore.data
+    val getName : Flow<String> = context.dataStore.data
+        .catch {
+            if (it is IOException) {
+                it.printStackTrace()
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
         .map { preferences ->
             preferences[NAME_KEY] ?: ""
         }
 
-    val getLastName : Flow<String?> = context.dataStore.data
+    val getLastName : Flow<String> = context.dataStore.data
+        .catch {
+            if (it is IOException) {
+                it.printStackTrace()
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
         .map { preferences ->
             preferences[LAST_NAME_KEY] ?: ""
         }
@@ -77,34 +93,4 @@ class SettingsDataStore(private val context: Context) {
             preferences.remove(LAST_NAME_KEY)
         }
     }
-
-
-
-    /*suspend fun saveUserId(userId: String, context: Context) {
-        context.dataStore.edit { preferences ->
-            preferences[USER_KEY] = userId
-        }
-        Log.d("SettingsDataStore", "Saved userId: $userId")
-    }
-
-    suspend fun clearUserId(context: Context) {
-        context.dataStore.edit { preferences ->
-            preferences.remove(USER_KEY)
-        }
-    }
-
-    val preferenceFlow: Flow<String> = context.dataStore.data
-        .catch {
-            if (it is IOException) {
-                it.printStackTrace()
-                emit(emptyPreferences())
-            } else {
-                throw it
-            }
-        }
-        .map { preferences ->
-            val userId = preferences[USER_KEY] ?: ""
-            Log.d("DataStore", "UserID leído: $userId") // Verifica si se lee correctamente
-            userId
-        }*/
 }

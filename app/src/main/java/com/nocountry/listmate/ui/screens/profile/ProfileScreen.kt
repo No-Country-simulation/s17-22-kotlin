@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     navHostController: NavHostController,
     settingsDataStore: SettingsDataStore,
-    context: Context,
+    context: Context
 ) {
     val savedName = settingsDataStore.getName.collectAsState(initial = "")
     val savedLastName = settingsDataStore.getLastName.collectAsState(initial = "")
@@ -77,7 +77,11 @@ fun ProfileScreen(
 
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopProfile(navHostController, settingsDataStore, context)
+        TopProfile(
+            navHostController = navHostController,
+            settingsDataStore = settingsDataStore,
+            context = context
+        )
         Spacer(modifier = Modifier.height(25.dp))
 
         Box(
@@ -156,7 +160,7 @@ fun ProfileScreen(
 fun TopProfile(
     navHostController: NavHostController,
     settingsDataStore: SettingsDataStore,
-    context: Context,
+    context: Context
 ) {
     var expanded by remember { mutableStateOf(false) }
     Row(

@@ -45,7 +45,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
     val settingsDataStore = remember { SettingsDataStore(context) }
     val userIdFlow = settingsDataStore.getUserId.collectAsState(initial = "")
     val startDestination by remember {
-        derivedStateOf { if (userIdFlow.value?.isNotEmpty() == true) Destinations.HOME else Destinations.LOGIN }
+        derivedStateOf { if (userIdFlow.value.isNotEmpty()) Destinations.HOME else Destinations.LOGIN }
     }
 
     val projectRepository: ProjectRepository =
@@ -105,7 +105,7 @@ fun ListMateApp(navHostController: NavHostController = rememberNavController()) 
                 ProfileScreen(
                     navHostController = navHostController,
                     settingsDataStore = settingsDataStore,
-                    context = context,
+                    context = context
                 )
             }
             composable(

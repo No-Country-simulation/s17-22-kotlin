@@ -32,14 +32,6 @@ class HomeScreenViewModel(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
     val userId = savedStateHandle.get<String>("userId")
 
-
-//    init {
-//
-//        if (userId != null) {
-//            getProjectsById(userId)
-//        }
-//    }
-
     fun getProjectsById(userId: String) {
         _uiState.update { it.copy(isLoading = true) }
 
@@ -70,7 +62,6 @@ class HomeScreenViewModel(
         }
     }
 
-
     companion object {
         fun provideFactory(userId: String): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -84,6 +75,4 @@ class HomeScreenViewModel(
             }
         }
     }
-
-
 }

@@ -79,7 +79,6 @@ fun HomeScreen(
             ExtendedFloatingActionButton(
                 onClick = {
                     if (userId.isNotEmpty()) {
-//                    navHostController.navigate("${Destinations.CREATE_PROJECT}/$userId")
                         navHostController.navigate(Destinations.CREATE_PROJECT)
                     }
                 },
