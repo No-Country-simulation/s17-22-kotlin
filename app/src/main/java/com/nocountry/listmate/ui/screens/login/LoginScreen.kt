@@ -68,23 +68,26 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
     ) {
         TopBar(titulo = "Log In")
         Spacer(modifier = Modifier.height(20.dp))
-       Column(
-           modifier = Modifier
-               .fillMaxHeight(1f)
-               .padding(20.dp),
-           verticalArrangement = Arrangement.Center,
+        Column(
+            modifier = Modifier
+                .fillMaxHeight(1f)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.Center,
 
 
-       ) {
-           Input(label = "Email", value = email){ email = it }
+            ) {
+            Input(label = "Email", value = email) { email = it }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-           Input(label = "Password", value = password, isPassword = true){ password = it }
+            Input(label = "Password", value = password, isPassword = true) { password = it }
 
-           Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(25.dp))
 
-            HyperlinkText(text = "¿Forgot password?", modifier = Modifier.align(alignment = Alignment.Start)) {  }
+            HyperlinkText(
+                text = "¿Forgot password?",
+                modifier = Modifier.align(alignment = Alignment.Start)
+            ) { }
 
             Spacer(modifier = Modifier.height(25.dp))
 
@@ -95,15 +98,18 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xff31628D)),
                 shape = RoundedCornerShape(10.dp),
                 onClick = {
-                    if(email.isNotBlank() && password.isNotBlank()){
+                    if (email.isNotBlank() && password.isNotBlank()) {
                         FirebaseAuth.getInstance()
-                            .signInWithEmailAndPassword(email , password)
-                            .addOnCompleteListener{
-                                if(it.isSuccessful){
+                            .signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener {
+                                if (it.isSuccessful) {
                                     //recuperar los datos del usuario
                                     val db = Firebase.firestore
                                     db.collection("users")
-                                        .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser!!.uid)
+                                        .whereEqualTo(
+                                            "uid",
+                                            FirebaseAuth.getInstance().currentUser!!.uid
+                                        )
                                         .get()
                                         .addOnSuccessListener { result ->
                                             val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -128,8 +134,7 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                                     //GlobalUser.initialize(user) --> pista
 
 
-                                }
-                                else {
+                                } else {
                                     displayAlert = true
                                 }
                             }
@@ -143,12 +148,16 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
             }
             Spacer(modifier = Modifier.height(25.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(text = "¿New user?")
                 Spacer(modifier = Modifier.width(10.dp))
                 HyperlinkText(
                     text = "Sign Up",
-                    color = Color.Black
+                    color = Color.Black,
                 ) {
                     navHostController.navigate(Destinations.SIGNUP)
                 }
@@ -160,10 +169,10 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
     if (displayAlert) {
         AlertDialog(
             title = {
-                Text(text = "No se pudo registrar")
+                Text(text = "User not found")
             },
             text = {
-                Text(text = "No se pudo registrar el usuario. Intente en unos minutos.")
+                Text(text = "Check your credentials and try again.")
             },
             onDismissRequest = {
             },
@@ -175,7 +184,7 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                         displayAlert = false
                     }
                 ) {
-                    Text("Entendido")
+                    Text("Ok")
                 }
             }
         )
@@ -211,6 +220,6 @@ fun HyperlinkText(
                 onClick?.invoke()
             }
         },
-        style = TextStyle(color = color, textDecoration = TextDecoration.None)
+        style = TextStyle(color = color, textDecoration = TextDecoration.Underline)
     )
 }

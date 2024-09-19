@@ -146,10 +146,10 @@ fun SignUpScreen(
     if (displayAlert) {
         AlertDialog(
             title = {
-                Text(text = "No se pudo registrar")
+                Text(text = "Could not register")
             },
             text = {
-                Text(text = "No se pudo registrar el usuario. Intente en unos minutos.")
+                Text(text = "User could not be registered. Check your credentials")
             },
             onDismissRequest = {
             },
@@ -161,7 +161,7 @@ fun SignUpScreen(
                         displayAlert = false
                     }
                 ) {
-                    Text("Entendido")
+                    Text("Ok")
                 }
             }
         )
