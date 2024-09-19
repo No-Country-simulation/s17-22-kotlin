@@ -63,11 +63,15 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         _projectTitle.value = projectTitle
     }
 
-    fun setProjectDescription(projectDescription: String){
+    fun setProjectDescription(projectDescription: String) {
         _projectDescription.value = projectDescription
     }
 
-    fun createProjectAndTasks(ownerId: String, projectDescription: String, onProjectCreated: () -> Unit) {
+    fun createProjectAndTasks(
+        ownerId: String,
+        projectDescription: String,
+        onProjectCreated: () -> Unit
+    ) {
         val title = _projectTitle.value
 
         val participants = _projectParticipants.value
@@ -82,7 +86,13 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
             try {
                 _loading.postValue(true)
                 if (title != null && participants?.isNotEmpty() == true) {
-                    projectRepository.createProject(title, ownerId, participantsId, tasksId, projectDescription)
+                    projectRepository.createProject(
+                        title,
+                        ownerId,
+                        participantsId,
+                        tasksId,
+                        projectDescription
+                    )
                         .collect { createdProject ->
                             _project.postValue(createdProject)
                             projectRepository.addParticipantsIds(createdProject.id, participants)
@@ -178,7 +188,7 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         }
     }
 
-    fun fetchProjectTasksFromDb(projectTasks: List<String>){
+    fun fetchProjectTasksFromDb(projectTasks: List<String>) {
         viewModelScope.launch {
             try {
                 projectRepository.fetchProjectTasksFromDb(projectTasks)
@@ -194,12 +204,34 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         }
     }
 
-    fun updateProjectAndTasks(projectId: String, onProjectUpdated: () -> Unit){
-        onProjectUpdated()
-
+    fun updateProjectAndTasks(
+        projectId: String,
+        projectName: String,
+        projectDescription: String,
+        participants: List<String>,
+        onProjectUpdated: () -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _loading.postValue(true)
+                projectRepository.updateProjectAndTasks(
+                    projectId,
+                    projectName,
+                    projectDescription,
+                    participants
+                ).collect {
+                    withContext(Dispatchers.Main) {
+                        onProjectUpdated()
+                        resetVariables()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ProjectViewModel", "Project could not be updated: ${e.message}", e)
+            } finally {
+                _loading.postValue(false)
+            }
+        }
     }
-
-
 
 
 

@@ -1,5 +1,6 @@
 package com.nocountry.listmate.ui.screens.editdeteleproject
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -296,11 +297,20 @@ fun EditDeleteProjectScreen(
                     onClick = {
                         if (selectedProject != null) {
                             if (selectedProject.name.isNotBlank()) {
-                                onUpdateProjectClick(
-                                    navHostController,
-                                    projectId,
-                                    createProjectTaskSharedViewModel
-                                )
+                                projectName?.let { name ->
+                                    projectDescription?.let { description ->
+                                        val participantIds = projectParticipants.map { it.uid }
+                                        onUpdateProjectClick(
+                                            navHostController,
+                                            projectId,
+                                            createProjectTaskSharedViewModel,
+                                            name,
+                                            description,
+                                            participantIds,
+                                            context
+                                        )
+                                    }
+                                }
                             }
                         }
                     },
@@ -371,15 +381,23 @@ fun EditDeleteProjectScreen(
             }
         }
     }
-
 }
 
 private fun onUpdateProjectClick(
     navHostController: NavHostController,
     projectId: String,
     createProjectTaskSharedViewModel: CreateProjectTaskSharedViewModel,
+    projectName: String,
+    projectDescription: String,
+    participants: List<String>,
+    context: Context
 ) {
-    createProjectTaskSharedViewModel.updateProjectAndTasks(projectId){
+    createProjectTaskSharedViewModel.updateProjectAndTasks(projectId, projectName, projectDescription, participants) {
+        Toast.makeText(
+            context,
+            "Project edited",
+            Toast.LENGTH_SHORT
+        ).show()
         navHostController.navigate(Destinations.HOME)
     }
 
