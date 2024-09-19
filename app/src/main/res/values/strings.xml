@@ -6,15 +6,21 @@
     <string name="my_tasks_bottom_nav_bar">My Tasks</string>
     <string name="home_bottom_nav_bar">Home</string>
 
+    <!-- Top Bar -->
+    <string name="my_projects_top_bar">My Projects</string>
+    <string name="my_project_top_bar">My Project</string>
+
     <!-- FAB BUTTON -->
     <string name="fab_button">Create</string>
 
     <string name="create_project">Create Project</string>
+    <string name="edit_project">Edit Project</string>
     <string name="create_task">Create Task</string>
     <string name="project_name_input_label">Project name</string>
     <string name="task_name_input_label">Task name</string>
     <string name="find_participants_label">Find participants</string>
     <string name="addtask_button_label">Add new task</string>
     <string name="create_project_button_label">Create project</string>
+    <string name="update_project_button_label">Update project</string>
 
 </resources>

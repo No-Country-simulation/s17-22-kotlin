@@ -1,5 +1,7 @@
 package com.nocountry.listmate.ui.screens.login
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,16 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,20 +29,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.nocountry.listmate.R
+import com.google.firebase.firestore.firestore
+import com.nocountry.listmate.singleton.GlobalUser
+import com.nocountry.listmate.ui.components.Input
 import com.nocountry.listmate.ui.components.TopBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
@@ -59,7 +53,6 @@ import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
 //}
 
 @Composable
-
 fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -75,68 +68,26 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
     ) {
         TopBar(titulo = "Log In")
         Spacer(modifier = Modifier.height(20.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxHeight(1f)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            TextField(
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,  // Línea cuando el campo está enfocado
-                    unfocusedIndicatorColor = Color.Transparent // Línea cuando el campo no está enfocado
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                value = email,
-                onValueChange = { email = it },
-                shape = RoundedCornerShape(15.dp),
-                label = { Text(text = "Email") },
-                maxLines = 1,
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            TextField(
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,  // Línea cuando el campo está enfocado
-                    unfocusedIndicatorColor = Color.Transparent // Línea cuando el campo no está enfocado
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                value = password,
-                onValueChange = { password = it },
-                shape = RoundedCornerShape(15.dp),
-                label = { Text(text = "Password") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password
-                ),
-                maxLines = 1,
-                singleLine = true,
-                visualTransformation =
-                if (passwordVisible)
-                    VisualTransformation.None
-                else
-                    PasswordVisualTransformation(),
-                trailingIcon = {
-                    if (password.isNotBlank()) {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            val icon = if (passwordVisible) R.drawable.eye_slash else R.drawable.eye
+       Column(
+           modifier = Modifier
+               .fillMaxHeight(1f)
+               .padding(20.dp),
+           verticalArrangement = Arrangement.Center,
 
-                            Icon(
-                                painter = painterResource(id = icon),
-                                modifier = Modifier.width(15.dp),
-                                contentDescription = ""
-                            )
-                        }
-                    }
-                }
-            )
+
+       ) {
+           Input(label = "Email", value = email){ email = it }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+           Input(label = "Password", value = password, isPassword = true){ password = it }
+
+           Spacer(modifier = Modifier.height(25.dp))
+
+            HyperlinkText(text = "¿Forgot password?", modifier = Modifier.align(alignment = Alignment.Start)) {  }
+
             Spacer(modifier = Modifier.height(25.dp))
-            HyperlinkText(
-                text = "¿Forgot password?",
-                modifier = Modifier.align(alignment = Alignment.Start)
-            ) { }
-            Spacer(modifier = Modifier.height(25.dp))
+
             Button(
                 modifier = Modifier
                     .align(alignment = Alignment.CenterHorizontally)
@@ -144,17 +95,41 @@ fun LoginScreen(navHostController: NavHostController, sharedViewModel: SharedVie
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xff31628D)),
                 shape = RoundedCornerShape(10.dp),
                 onClick = {
-                    if (email.isNotBlank() && password.isNotBlank()) {
+                    if(email.isNotBlank() && password.isNotBlank()){
                         FirebaseAuth.getInstance()
-                            .signInWithEmailAndPassword(email, password)
-                            .addOnCompleteListener {
-                                if (it.isSuccessful) {
-                                    val userId = FirebaseAuth.getInstance().currentUser?.uid
-                                    if (userId != null) {
-                                        sharedViewModel.setUserId(userId)
-                                        navHostController.navigate(Destinations.HOME)
-                                    }
-                                } else {
+                            .signInWithEmailAndPassword(email , password)
+                            .addOnCompleteListener{
+                                if(it.isSuccessful){
+                                    //recuperar los datos del usuario
+                                    val db = Firebase.firestore
+                                    db.collection("users")
+                                        .whereEqualTo("uid", FirebaseAuth.getInstance().currentUser!!.uid)
+                                        .get()
+                                        .addOnSuccessListener { result ->
+                                            val userId = FirebaseAuth.getInstance().currentUser?.uid
+                                            if (result.isEmpty) {
+                                                Log.d(TAG, "No user found with email: $email")
+                                            } else {
+                                                for (document in result) {
+                                                    GlobalUser.initialize(document)
+                                                    if (userId != null) {
+                                                        sharedViewModel.setUserId(userId)
+                                                    }
+                                                    navHostController.navigate(Destinations.HOME)
+                                                }
+                                            }
+                                        }
+                                        .addOnFailureListener { exception ->
+                                            Log.w(TAG, "Error getting documents.", exception)
+                                        }
+
+                                    //guardar los datos delusuario en Globaluser
+
+                                    //GlobalUser.initialize(user) --> pista
+
+
+                                }
+                                else {
                                     displayAlert = true
                                 }
                             }

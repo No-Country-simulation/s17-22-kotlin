@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -35,6 +36,9 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
 
     private val _projectTitle = MutableLiveData<String>()
     val projectTitle: LiveData<String> get() = _projectTitle
+
+    private val _projectDescription = MutableLiveData<String>()
+    val projectDescription: LiveData<String> get() = _projectDescription
 
     private val _project = MutableLiveData<Project>()
 
@@ -59,7 +63,15 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         _projectTitle.value = projectTitle
     }
 
-    fun createProjectAndTasks(ownerId: String, onProjectCreated: () -> Unit) {
+    fun setProjectDescription(projectDescription: String) {
+        _projectDescription.value = projectDescription
+    }
+
+    fun createProjectAndTasks(
+        ownerId: String,
+        projectDescription: String,
+        onProjectCreated: () -> Unit
+    ) {
         val title = _projectTitle.value
 
         val participants = _projectParticipants.value
@@ -74,7 +86,13 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
             try {
                 _loading.postValue(true)
                 if (title != null && participants?.isNotEmpty() == true) {
-                    projectRepository.createProject(title, ownerId, participantsId, tasksId)
+                    projectRepository.createProject(
+                        title,
+                        ownerId,
+                        participantsId,
+                        tasksId,
+                        projectDescription
+                    )
                         .collect { createdProject ->
                             _project.postValue(createdProject)
                             projectRepository.addParticipantsIds(createdProject.id, participants)
@@ -154,9 +172,72 @@ class CreateProjectTaskSharedViewModel(private val projectRepository: ProjectRep
         }
     }
 
+    fun fetchProjectParticipantsFromDb(projectParticipants: List<String>) {
+        viewModelScope.launch {
+            try {
+                projectRepository.fetchProjectParticipantsFromDb(projectParticipants)
+                    .flowOn(Dispatchers.IO)
+                    .collect { participants ->
+                        withContext(Dispatchers.Main) {
+                            _projectParticipants.value = participants.toMutableList()
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.e("ProjectViewModel", "Error collecting participants: ${e.message}", e)
+            }
+        }
+    }
+
+    fun fetchProjectTasksFromDb(projectTasks: List<String>) {
+        viewModelScope.launch {
+            try {
+                projectRepository.fetchProjectTasksFromDb(projectTasks)
+                    .flowOn(Dispatchers.IO)
+                    .collect { tasks ->
+                        withContext(Dispatchers.Main) {
+                            _tasks.value = tasks.toMutableList()
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.e("ProjectViewModel", "Error collecting tasks: ${e.message}", e)
+            }
+        }
+    }
+
+    fun updateProjectAndTasks(
+        projectId: String,
+        projectName: String,
+        projectDescription: String,
+        participants: List<String>,
+        onProjectUpdated: () -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _loading.postValue(true)
+                projectRepository.updateProjectAndTasks(
+                    projectId,
+                    projectName,
+                    projectDescription,
+                    participants
+                ).collect {
+                    withContext(Dispatchers.Main) {
+                        onProjectUpdated()
+                        resetVariables()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ProjectViewModel", "Project could not be updated: ${e.message}", e)
+            } finally {
+                _loading.postValue(false)
+            }
+        }
+    }
+
+
 
     private fun resetVariables() {
         _projectTitle.value = ""
+        _projectDescription.value = ""
         _tasks.value?.clear()
         _tasks.value = _tasks.value
         _projectParticipants.value?.clear()

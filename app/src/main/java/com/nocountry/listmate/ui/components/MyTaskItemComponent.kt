@@ -1,6 +1,7 @@
 package com.nocountry.listmate.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +26,8 @@ import com.nocountry.listmate.data.model.Task
 @Composable
 fun MyTaskItemComponent(myTask: Task, projectName: String, onStatusChange: (Boolean) -> Unit) {
 
-    var status by remember { mutableStateOf(myTask.status) }
+    var status by rememberSaveable { mutableStateOf(myTask.status) }
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
 
 //    val backgroundColor = if (status) {
 //        Color.LightGray  // Background color for true status
@@ -37,22 +40,50 @@ fun MyTaskItemComponent(myTask: Task, projectName: String, onStatusChange: (Bool
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .background(Color.LightGray, shape = RoundedCornerShape(12.dp))
+            .clickable { isExpanded = !isExpanded }
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(10.dp)
         ) {
-            Column {
-                Text(text = myTask.taskName)
-                Text(text = "Project: $projectName")
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(text = myTask.taskName)
+                    Text(text = "Project: $projectName")
+                }
+                Checkbox(checked = status, onCheckedChange = { newValue ->
+                    status = newValue
+                    onStatusChange(newValue)
+                })
             }
-            Checkbox(checked = status, onCheckedChange = { newValue ->
-                status = newValue
-                onStatusChange(newValue)
-            })
+
+            if (isExpanded) {
+                Text(
+                    text = "Description:",
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                if (myTask.description == "") {
+                    Text(
+                        text = "No description provided",
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = Color.DarkGray
+                    )
+                } else {
+                    Text(
+                        text = myTask.description,
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = Color.DarkGray
+                    )
+                }
+
+            }
         }
     }
 }

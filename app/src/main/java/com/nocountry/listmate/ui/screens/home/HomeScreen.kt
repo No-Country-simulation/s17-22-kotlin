@@ -1,5 +1,7 @@
 package com.nocountry.listmate.ui.screens.home
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nocountry.listmate.R
 import com.nocountry.listmate.data.model.Project
 import com.nocountry.listmate.data.model.User
+import com.nocountry.listmate.singleton.GlobalUser
 import com.nocountry.listmate.ui.components.BottomNavigationBar
 import com.nocountry.listmate.ui.navigation.Destinations
 import com.nocountry.listmate.ui.screens.sharedviewmodels.SharedViewModel
@@ -54,14 +57,9 @@ import com.nocountry.listmate.ui.theme.ListMateTheme
 @Composable
 fun HomeScreen(
     navHostController: NavHostController,
-    sharedViewModel: SharedViewModel
+    homeScreenViewModel: HomeScreenViewModel,
+    userId: String
 ) {
-
-    val userId by sharedViewModel.userId.collectAsState()
-
-    val homeScreenViewModel: HomeScreenViewModel = viewModel(
-        factory = HomeScreenViewModel.provideFactory(userId)
-    )
 
     val uiState by homeScreenViewModel.uiState.collectAsState()
 
@@ -69,6 +67,7 @@ fun HomeScreen(
         mutableStateOf<User?>(null)
     }
     LaunchedEffect(userId) {
+        homeScreenViewModel.getProjectsById(userId)
         user.value = homeScreenViewModel.getUserById(userId)
     }
 
@@ -123,7 +122,10 @@ fun HomeScreen(
                         user.value?.let { user ->
                             ProjectsOverview(user = user, uiState.projects)
                         }
-                        ProjectsList(projects = uiState.projects)
+                        ProjectsList(
+                            projects = uiState.projects,
+                            navHostController = navHostController
+                        )
 
                     }
 
@@ -172,7 +174,8 @@ fun ProjectsOverview(user: User, projects: List<Project>) {
 
 @Composable
 fun ProjectsList(
-    projects: List<Project>
+    projects: List<Project>,
+    navHostController: NavHostController
 ) {
     val colorsProjects =
         listOf(
@@ -183,17 +186,39 @@ fun ProjectsList(
     LazyColumn {
         itemsIndexed(projects) { index, project ->
             val backgroundColor = colorsProjects[index % colorsProjects.size]
-            ProjectSection(project = project, backgroundColor)
+            ProjectSection(
+                project = project,
+                backgroundColor,
+                onClick = { projectId ->
+                    Log.d("ProjectsList", "Navigating with Project ID: $projectId")
+                    if (projectId.isNotEmpty()) {
+                        navHostController.navigate("${Destinations.PROJECT_DETAIL}/$projectId")
+                    } else {
+                        Log.e("NavigationError", "Project ID is empty or null")
+                    }
+                },
+                navHostController
+            )
         }
     }
 }
 
 @Composable
-fun ProjectSection(project: Project, backgroundColor: Color) {
+fun ProjectSection(project: Project, backgroundColor: Color, onClick: (String) -> Unit, navHostController: NavHostController) {
+    val projectId = project.id
+    Log.d("ProjectSection", "Project ID in Section: $projectId")
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable {
+                Log.d(
+                    "ProjectSection",
+                    "Clicked Project ID: $projectId"
+                )
+                onClick(projectId)
+            },
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Box(
@@ -248,7 +273,11 @@ fun ProjectSection(project: Project, backgroundColor: Color) {
 
             }
             SmallFloatingActionButton(
-                onClick = { /*TODO*/ }, modifier = Modifier
+                onClick = {
+                    if (project.id.isNotBlank()) {
+                        navHostController.navigate("${Destinations.EDIT_DELETE_PROJECT}/${project.id}")
+                    }
+                }, modifier = Modifier
                     .align(Alignment.BottomEnd)
             ) {
                 Icon(

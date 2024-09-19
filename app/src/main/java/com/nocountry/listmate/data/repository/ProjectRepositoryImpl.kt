@@ -1,13 +1,17 @@
 package com.nocountry.listmate.data.repository
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.nocountry.listmate.data.model.Project
 import com.nocountry.listmate.data.model.Task
 import com.nocountry.listmate.data.model.User
 import com.nocountry.listmate.domain.ProjectRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 
 class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRepository {
@@ -16,27 +20,40 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
         ownerId: String,
         participants: List<String>?,
         tasks: List<String>?,
+        projectDescription: String
     ): Flow<Project> = callbackFlow {
         val project = hashMapOf(
             "name" to projectName,
             "ownerId" to ownerId,
             "participants" to participants,
-            "tasks" to tasks
+            "tasks" to tasks,
+            "description" to projectDescription
         )
 
         firebase.collection("projects")
             .add(project)
             .addOnSuccessListener { docRef ->
                 val projectId = docRef.id
-                val createProject =
-                    participants?.let { Project(projectId, projectName, "", it, tasks, ownerId) }
-                if (createProject != null) {
-                    trySend(createProject).isSuccess
-                }
+                firebase.collection("projects").document(projectId)
+                    .update("id", projectId)
+                    .addOnSuccessListener {
+                        val createProject = Project(
+                            projectId,
+                            projectName,
+                            projectDescription,
+                            participants ?: emptyList(),
+                            tasks,
+                            ownerId
+                        )
+                        trySend(createProject).isSuccess
+                    }
+                    .addOnFailureListener { close(it) }
             }
             .addOnFailureListener { close(it) }
+
         awaitClose()
     }
+
 
     override suspend fun createTasks(projectId: String, tasks: List<Task>): Flow<List<Task>> =
         callbackFlow {
@@ -108,6 +125,84 @@ class ProjectRepositoryImpl(private val firebase: FirebaseFirestore) : ProjectRe
             }
         }
         awaitClose { snapshotListener.remove() }
+    }
+
+    override suspend fun deleteProject(projectId: String) {
+        try {
+            val tasksSnapshot = firebase.collection("tasks")
+                .whereEqualTo("projectId", projectId)
+                .get()
+                .await()
+
+            for (task in tasksSnapshot.documents) {
+                firebase.collection("tasks").document(task.id).delete().await()
+            }
+
+            firebase.collection("projects")
+                .document(projectId)
+                .delete()
+                .await()
+        } catch (e: Exception) {
+            Log.e("ProjectRepositoryImpl", "Error deleting project: ${e.message}", e)
+            throw e
+        }
+    }
+
+    override suspend fun fetchProjectParticipantsFromDb(projectParticipants: List<String>): Flow<List<User>> = flow {
+        try {
+            val users = mutableListOf<User>()
+            val usersCollection = firebase.collection("users")
+
+            val query = usersCollection.whereIn("uid", projectParticipants).get().await()
+
+            query.documents.forEach { document ->
+                document.toObject(User::class.java)?.let { user ->
+                    users.add(user)
+                }
+            }
+
+            emit(users)
+        } catch (e: Exception) {
+            Log.e("ProjectRepository", "Error fetching participants: ${e.message}")
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun fetchProjectTasksFromDb(projectTasks: List<String>): Flow<List<Task>> = flow {
+        try {
+            val tasks = mutableListOf<Task>()
+            val usersCollection = firebase.collection("tasks")
+
+            projectTasks.forEach { uid ->
+                val userDoc = usersCollection.document(uid).get().await()
+                userDoc.toObject(Task::class.java)?.let { task ->
+                    tasks.add(task)
+                }
+            }
+            emit(tasks)
+        } catch (e: Exception) {
+            Log.e("ProjectRepository", "Error fetching participants: ${e.message}")
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun updateProjectAndTasks(
+        projectId: String,
+        projectName: String,
+        projectDescription: String,
+        participants: List<String>
+    ): Flow<Project> {
+        return flow {
+            val projectRef = firebase.collection("projects").document(projectId)
+            val updates = mapOf(
+                "name" to projectName,
+                "description" to projectDescription,
+                "participants" to participants
+            )
+            projectRef.update(updates).await()
+            val updatedProject = projectRef.get().await().toObject(Project::class.java)
+            updatedProject?.let { emit(it) }
+        }.flowOn(Dispatchers.IO)
     }
 
 }

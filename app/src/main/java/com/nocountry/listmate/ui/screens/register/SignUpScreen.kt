@@ -46,9 +46,9 @@ fun SignUpPreview() {
 
 fun SignUpScreen(
     navHostController: NavHostController
-) {
-    var nombre by remember { mutableStateOf("") }
-    var apellido by remember { mutableStateOf("") }
+){
+    var name by remember { mutableStateOf("") }
+    var lastname by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordRepeat by remember { mutableStateOf("") }
@@ -74,19 +74,19 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally
 
         ) {
-            Input(label = "Name", value = nombre) {
-                nombre = it
+            Input(label = "Name", value = name){
+               name = it
             }
-            Input(label = "Lastname", value = apellido) {
-                apellido = it
+            Input(label = "Lastname", value = lastname){
+                lastname = it
             }
             Input(label = "Email", value = username) {
                 username = it
             }
-            Input(label = "Password", value = password) {
+            Input(label = "Password", value =password, isPassword = true){
                 password = it
             }
-            Input(label = "Repeat Passsword", value = passwordRepeat) {
+            Input(label = "Repeat Passsword", value = passwordRepeat, isPassword = true){
                 passwordRepeat = it
             }
             Spacer(modifier = Modifier.height(25.dp))
@@ -115,16 +115,12 @@ fun SignUpScreen(
                             .addOnCompleteListener{
                                 if(it.isSuccessful){
                                     FirebaseAuth.getInstance().signInWithEmailAndPassword(username, password)
-                                    val user =
-                                        FirebaseAuth.getInstance().currentUser?.uid?.let { userId ->
-                                            User(
-                                                name = nombre,
-                                                lastName = apellido,
-                                                email = username,
-                                                projects = emptyList(),
-                                                uid = userId
-                                            )
-                                        }
+                                    val user = User(
+                                        name = name,
+                                        lastName = lastname,
+                                        email = username,
+                                        uid = FirebaseAuth.getInstance().currentUser?.uid?:""
+                                    )
 
                                     UsuarioManager().guardarUsuario(user)
 
